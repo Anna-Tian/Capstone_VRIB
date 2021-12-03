@@ -26,8 +26,8 @@ using ViveSR.anipal.Eye;
 //Also updated for the 2.0 SDK
 public class EyeTrackingLogger : MonoBehaviour
 {
-    public ExperimentController expctrl;
     private float timeCounter;
+    string LogFile;
 
     [Tooltip("Frequency of the aquisition of eye tracking data")]
     public float frequency = 120.0f;
@@ -41,6 +41,7 @@ public class EyeTrackingLogger : MonoBehaviour
     {
         timeCounter = 0.0f;
         time_frequency = 1 / frequency;
+        LogFile = Application.persistentDataPath + "/Experiment-" + System.DateTime.Now.ToShortDateString().Replace('/', '-') + "-" + System.DateTime.Now.ToShortTimeString().Replace(':', '-') + ".json";
         Debug.Log(string.Format("EyeTrackingLogger - Start tracking"));
     }
 
@@ -85,10 +86,15 @@ public class EyeTrackingLogger : MonoBehaviour
                 gaze_direction = gazeRay.Direction,
                 left_blink = eyeTrackingData.leftEyeOpenness,
                 right_blink = eyeTrackingData.rightEyeOpenness,
+                combinedEyePoseStatus = eyeTrackingData.combinedEyePoseStatus,
+                combinedEyeGazePoint = eyeTrackingData.combinedEyeGazePoint,
+                combinedEyeGazeVector = eyeTrackingData.combinedEyeGazeVector,
                 timestamp = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).Timestamp
             };
             Debug.Log(string.Format("AcquireEyeTrackingData - gazeData: {0}", gazeData.gaze_location));
 
+            if (eyeTrackingData.leftEyeOpenness == 0) ExperimentController.markerStream.Write("LEFT_BLINK");
+            if (eyeTrackingData.rightEyeOpenness == 0) ExperimentController.markerStream.Write("RIGHT_BLINK");
 
             // var eyeData = new EyeData();
 
@@ -102,7 +108,7 @@ public class EyeTrackingLogger : MonoBehaviour
 
 
             Logger.log.eyeGazeData.Add(gazeData);
-            gazeData.LogToFile(expctrl.LogFile);
+            gazeData.LogToFile(LogFile);
             //dataManager.AddGazeData(gazeData);
 
         }
@@ -116,8 +122,9 @@ public class EyeTrackingLogger : MonoBehaviour
         public float left_blink;
         public float right_blink;
         public float timestamp;
-        public float pupil_dilatation_left;
-        public float pupil_dilatation_right;
+        public int combinedEyePoseStatus;
+        public Vector3 combinedEyeGazePoint;
+        public Vector3 combinedEyeGazeVector;
         private bool logged = false;
 
         public void LogToFile(string fileName)

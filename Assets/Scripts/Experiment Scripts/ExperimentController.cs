@@ -8,6 +8,8 @@ using UnityEngine.UI;
 using SickscoreGames.HUDNavigationSystem;
 using System.Linq;
 using Pvr_UnitySDKAPI;
+using LSL;
+using Assets.LSL4Unity.Scripts;
 
 public class ExperimentController : MonoBehaviour
 {
@@ -51,6 +53,8 @@ public class ExperimentController : MonoBehaviour
     ExperimentState currentState = ExperimentState.Startup;
 
     static public LogWrapper logWrapper = new LogWrapper();
+    static public LSLMarkerStream markerStream;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -67,6 +71,10 @@ public class ExperimentController : MonoBehaviour
         lastTime = Time.time;
         randomUnexpArray = GenerateRandomArray(10, randomUnexpArray);
         InitGrid();
+
+        markerStream = FindObjectOfType<LSLMarkerStream>();
+        markerStream.gameObject.SetActive(false);
+        markerStream.gameObject.SetActive(true);
     }
 
     private void OnDisable()
@@ -198,6 +206,7 @@ public class ExperimentController : MonoBehaviour
             //currentTrial.endtime = Time.time;
             currentExp = new Experiment(Time.time);
             currentExp.LogToFile(LogFile);
+            markerStream.Write("training end ");
 
             trialsCount = 600;
             trialsArray = new int[600];
@@ -223,7 +232,11 @@ public class ExperimentController : MonoBehaviour
             menuScreen.transform.Find("Menu Slides").Find("Questionnaire").gameObject.SetActive(false);
             menuScreen.transform.Find("Menu Slides").Find("Interim").gameObject.SetActive(true);
 
-            if (phaseNum < 2) phaseNum++;
+            if (phaseNum < 2)
+            {
+                phaseNum++;
+                markerStream.Write("experiment " + phaseNum + " end");
+            }
             else
             {
                 inInterim = false;
@@ -233,6 +246,7 @@ public class ExperimentController : MonoBehaviour
                 GUIUtility.systemCopyBuffer = System.IO.File.ReadAllText(LogFile);
                 transform.Find("ExperimentObjects").Find("End Screen").gameObject.SetActive(true);
                 EnableNavSystem(false);
+                markerStream.Write("experiment " + phaseNum + " end");
             }
         }
         #endregion
@@ -257,7 +271,6 @@ public class ExperimentController : MonoBehaviour
             crosshair.GetComponent<Image>().color = Color.red;
             currentExp = new Experiment(Time.time);
             currentExp.LogToFile(LogFile);
-
         }
         #endregion
 
@@ -774,6 +787,7 @@ public class ExperimentController : MonoBehaviour
         public List<Experiment> expFlags;
         public List<AwarenessQuestionnaire.Questionnaire> expQuestions;
         public List<EyeTrackingLogger.EyeGazeData> eyeGazeData;
+        public List<LogOnGaze.ObjectGaze> objectGaze;
 
         public LogWrapper()
         {
@@ -782,6 +796,7 @@ public class ExperimentController : MonoBehaviour
             expFlags = new List<Experiment>();
             expQuestions = new List<AwarenessQuestionnaire.Questionnaire>();
             eyeGazeData = new List<EyeTrackingLogger.EyeGazeData>();
+            objectGaze = new List<LogOnGaze.ObjectGaze>();
         }
         private bool logged = false;
         private bool writeflag = false;
@@ -798,6 +813,7 @@ public class ExperimentController : MonoBehaviour
             else if (trial is Experiment) expFlags.Add((Experiment)trial);//This is for start/end Flags
             else if (trial is AwarenessQuestionnaire.Questionnaire) expQuestions.Add((AwarenessQuestionnaire.Questionnaire)trial);
             else if (trial is EyeTrackingLogger.EyeGazeData) eyeGazeData.Add((EyeTrackingLogger.EyeGazeData)trial);
+            else if (trial is LogOnGaze.ObjectGaze) objectGaze.Add((LogOnGaze.ObjectGaze)trial);
             writeflag = true;
         }
 

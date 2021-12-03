@@ -7,16 +7,18 @@ using JetBrains.Annotations;
 public class LogOnGaze : MonoBehaviour, IGazeFocusable
 {
     ObjectGaze currentGaze = new ObjectGaze();
+    string LogFile;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        LogFile = Application.persistentDataPath + "/Experiment-" + System.DateTime.Now.ToShortDateString().Replace('/', '-') + "-" + System.DateTime.Now.ToShortTimeString().Replace(':', '-') + ".json";
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
     }
     //The method of the "IGazeFocusable" interface, which will be called when this object receives or loses focus
     public void GazeFocusChanged(bool hasFocus)
@@ -25,15 +27,16 @@ public class LogOnGaze : MonoBehaviour, IGazeFocusable
         if (hasFocus)
         {
             currentGaze.objName = this.gameObject.name;
-            Logger.markerStream.Write("gzOn" + gameObject.name);
+            ExperimentController.markerStream.Write("gzOn" + gameObject.name);
             currentGaze.startTime = Time.time;
         }
         //If this object lost focus, LSL SAGAT-off and set end time and log.
         else
         {
             currentGaze.endTime = Time.time;
-            Logger.markerStream.Write("gzOff" + gameObject.name);
-            Logger.log.AddToLog(currentGaze);
+            ExperimentController.markerStream.Write("gzOff" + gameObject.name);
+            // Logger.log.AddToLog(currentGaze);
+            currentGaze.LogToFile(LogFile);
             currentGaze = new ObjectGaze();
         }
     }
@@ -43,6 +46,15 @@ public class LogOnGaze : MonoBehaviour, IGazeFocusable
         public float startTime;
         public float endTime;
         public string objName;
+        private bool logged = false;
+
+        public void LogToFile(string fileName)
+        {
+            //  string thisJson = JsonUtility.ToJson(this);
+            //  System.IO.File.AppendAllText(fileName, thisJson + "\n");
+            if (!logged) ExperimentController.logWrapper.AddToLog(this);
+            logged = true;
+        }
     }
 }
 
