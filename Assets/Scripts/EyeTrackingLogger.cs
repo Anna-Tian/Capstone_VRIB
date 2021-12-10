@@ -86,15 +86,14 @@ public class EyeTrackingLogger : MonoBehaviour
                 gaze_direction = gazeRay.Direction,
                 left_blink = eyeTrackingData.leftEyeOpenness,
                 right_blink = eyeTrackingData.rightEyeOpenness,
-                combinedEyePoseStatus = eyeTrackingData.combinedEyePoseStatus,
-                combinedEyeGazePoint = eyeTrackingData.combinedEyeGazePoint,
-                combinedEyeGazeVector = eyeTrackingData.combinedEyeGazeVector,
+                // isLeftEyeBlinking = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsLeftEyeBlinking,
+                // isRightEyeBlinking = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsRightEyeBlinking,
                 timestamp = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).Timestamp
             };
             Debug.Log(string.Format("AcquireEyeTrackingData - gazeData: {0}", gazeData.gaze_location));
 
-            if (eyeTrackingData.leftEyeOpenness == 0) ExperimentController.markerStream.Write("LEFT_BLINK");
-            if (eyeTrackingData.rightEyeOpenness == 0) ExperimentController.markerStream.Write("RIGHT_BLINK");
+            // if (eyeTrackingData.leftEyeOpenness == 0) ExperimentController.markerStream.Write("LEFT_BLINK");
+            // if (eyeTrackingData.rightEyeOpenness == 0) ExperimentController.markerStream.Write("RIGHT_BLINK");
 
             // var eyeData = new EyeData();
 
@@ -106,8 +105,13 @@ public class EyeTrackingLogger : MonoBehaviour
             //   gazeData.pupil_dilatation_right = eyeData.verbose_data.right.pupil_diameter_mm;
             // }
 
+            if (TobiiXR.FocusedObjects.Count > 0)
+            {
+                // Do something with the focused game object
+                gazeData.objName = TobiiXR.FocusedObjects[0].GameObject.name;
+            }
 
-            Logger.log.eyeGazeData.Add(gazeData);
+            // Logger.log.eyeGazeData.Add(gazeData);
             gazeData.LogToFile(LogFile);
             //dataManager.AddGazeData(gazeData);
 
@@ -122,9 +126,9 @@ public class EyeTrackingLogger : MonoBehaviour
         public float left_blink;
         public float right_blink;
         public float timestamp;
-        public int combinedEyePoseStatus;
-        public Vector3 combinedEyeGazePoint;
-        public Vector3 combinedEyeGazeVector;
+        // public bool isLeftEyeBlinking;
+        // public bool isRightEyeBlinking;
+        public string objName;
         private bool logged = false;
 
         public void LogToFile(string fileName)

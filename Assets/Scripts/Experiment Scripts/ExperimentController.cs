@@ -72,15 +72,9 @@ public class ExperimentController : MonoBehaviour
         randomUnexpArray = GenerateRandomArray(10, randomUnexpArray);
         InitGrid();
 
-        markerStream = FindObjectOfType<LSLMarkerStream>();
-        markerStream.gameObject.SetActive(false);
-        markerStream.gameObject.SetActive(true);
-    }
-
-    private void OnDisable()
-    {
-        logWrapper.LogToFile(Logger.logFileName.TrimEnd(".json".ToCharArray()) + "--" + ".json");
-        // Logger.log.LogToFile("Test");
+        // markerStream = FindObjectOfType<LSLMarkerStream>();
+        // markerStream.gameObject.SetActive(false);
+        // markerStream.gameObject.SetActive(true);
     }
 
     // Update is called once per frame
@@ -206,7 +200,7 @@ public class ExperimentController : MonoBehaviour
             //currentTrial.endtime = Time.time;
             currentExp = new Experiment(Time.time);
             currentExp.LogToFile(LogFile);
-            markerStream.Write("training end ");
+            // markerStream.Write("training end ");
 
             trialsCount = 600;
             trialsArray = new int[600];
@@ -235,7 +229,7 @@ public class ExperimentController : MonoBehaviour
             if (phaseNum < 2)
             {
                 phaseNum++;
-                markerStream.Write("experiment " + phaseNum + " end");
+                // markerStream.Write("experiment " + phaseNum + " end");
             }
             else
             {
@@ -246,7 +240,7 @@ public class ExperimentController : MonoBehaviour
                 GUIUtility.systemCopyBuffer = System.IO.File.ReadAllText(LogFile);
                 transform.Find("ExperimentObjects").Find("End Screen").gameObject.SetActive(true);
                 EnableNavSystem(false);
-                markerStream.Write("experiment " + phaseNum + " end");
+                // markerStream.Write("experiment " + phaseNum + " end");
             }
         }
         #endregion
