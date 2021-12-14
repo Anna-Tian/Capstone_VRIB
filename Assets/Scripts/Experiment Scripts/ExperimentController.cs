@@ -11,9 +11,12 @@ using Pvr_UnitySDKAPI;
 using LSL;
 using Assets.LSL4Unity.Scripts;
 
+// [ExecuteInEditMode]
 public class ExperimentController : MonoBehaviour
 {
     public const bool DEBUG = false;
+    public bool isTesting;
+    public bool isTestingDone;
 
     public Material materialWindowLight;
     public Material materialWindow;
@@ -54,6 +57,7 @@ public class ExperimentController : MonoBehaviour
 
     static public LogWrapper logWrapper = new LogWrapper();
     static public LSLMarkerStream markerStream;
+
 
     // Start is called before the first frame update
     void Start()
@@ -361,7 +365,21 @@ public class ExperimentController : MonoBehaviour
             transform.Find("ExperimentObjects").Find("Pairing Screen").Find("Continue").gameObject.SetActive(true);
         }
     }
-
+    // private void Start()
+    // {
+    // }
+    // private void Update()
+    // {
+    //     if (isTesting)
+    //     {
+    //         // ChangeGrid(1);
+    //         InitGrid();
+    //     }
+    //     if (isTestingDone)
+    //     {
+    //         ChangeGrid(3);
+    //     }
+    // }
     private void playStimulus()
     {
         if (lastTime + stimDelay < Time.time)
@@ -429,7 +447,7 @@ public class ExperimentController : MonoBehaviour
 
     private void ChangeGrid(int type)
     {
-        // currentTrial.gridType = "random";
+        // set random background
         InitGrid();
         switch (Random.Range(1, 5))
         {
@@ -478,36 +496,55 @@ public class ExperimentController : MonoBehaviour
 
         }
 
-        if (type == 0) currentTrial.gridType = "random";
+        if (type == 0) // random
+        {
+            currentTrial.gridType = "random";
+        }
+
         if (type == 1) // square
         {
             currentTrial.gridType = "square";
+
             //outer square
-            for (int outer = 3; outer < 16; outer++)
+            for (int col = 3; col < 16; col++)
             {
-                squareGrid[2, outer].GetComponent<MeshRenderer>().material = materialWindow;
-                squareGrid[16, outer].GetComponent<MeshRenderer>().material = materialWindow;
-                squareGrid[outer, 3].GetComponent<MeshRenderer>().material = materialWindow;
-                squareGrid[outer, 15].GetComponent<MeshRenderer>().material = materialWindow;
+                squareGrid[2, col].GetComponent<MeshRenderer>().material = materialWindow;
+                squareGrid[17, col].GetComponent<MeshRenderer>().material = materialWindow;
+            }
+            for (int row = 2; row < 18; row++)
+            {
+                squareGrid[row, 3].GetComponent<MeshRenderer>().material = materialWindow;
+                squareGrid[row, 15].GetComponent<MeshRenderer>().material = materialWindow;
             }
             //square
-            for (int colRow = 4; colRow < 15; colRow++)
+            for (int col = 4; col < 15; col++)
             {
-                squareGrid[3, colRow].GetComponent<MeshRenderer>().material = materialWindowLight;
-                squareGrid[16, colRow].GetComponent<MeshRenderer>().material = materialWindowLight;
-                squareGrid[colRow, 4].GetComponent<MeshRenderer>().material = materialWindowLight;
-                squareGrid[colRow, 14].GetComponent<MeshRenderer>().material = materialWindowLight;
-                squareGrid[colRow + 1, 4].GetComponent<MeshRenderer>().material = materialWindowLight;
-                squareGrid[colRow + 1, 14].GetComponent<MeshRenderer>().material = materialWindowLight;
+                squareGrid[3, col].GetComponent<MeshRenderer>().material = materialWindowLight;
+                squareGrid[16, col].GetComponent<MeshRenderer>().material = materialWindowLight;
+            }
+            for (int row = 3; row < 17; row++)
+            {
+                squareGrid[row, 4].GetComponent<MeshRenderer>().material = materialWindowLight;
+                squareGrid[row, 14].GetComponent<MeshRenderer>().material = materialWindowLight;
             }
             //inner square
-            for (int inner = 5; inner < 14; inner++)
+            for (int col = 5; col < 14; col++)
             {
-                squareGrid[4, inner].GetComponent<MeshRenderer>().material = materialWindow;
-                squareGrid[14, inner].GetComponent<MeshRenderer>().material = materialWindow;
-                squareGrid[inner, 5].GetComponent<MeshRenderer>().material = materialWindow;
-                squareGrid[inner, 13].GetComponent<MeshRenderer>().material = materialWindow;
+                squareGrid[4, col].GetComponent<MeshRenderer>().material = materialWindow;
+                squareGrid[15, col].GetComponent<MeshRenderer>().material = materialWindow;
             }
+            for (int row = 4; row < 16; row++)
+            {
+                squareGrid[row, 5].GetComponent<MeshRenderer>().material = materialWindow;
+                squareGrid[row, 13].GetComponent<MeshRenderer>().material = materialWindow;
+            }
+
+            GameObject gridSquare = new GameObject("pattern_Square");
+            GameObject squareParent = GameObject.Find("Windows");
+            gridSquare.transform.parent = squareParent.transform;
+            gridSquare.AddComponent<LogOnGaze>();
+            ChangeSquareParent(gridSquare);
+            RenameBuildingInSquare();
         }
 
         if (type == 2) // diamond
@@ -561,6 +598,76 @@ public class ExperimentController : MonoBehaviour
                     squareGrid[22 - row, 3 + row].GetComponent<MeshRenderer>().material = materialWindow;
 
                 }
+            }
+        }
+
+        if (type == 3) // ISI
+        {
+            GameObject buildingParent = GameObject.Find("IB_Building");
+            GameObject squareParent = GameObject.Find("Windows");
+            ChangeSquareParent(squareParent);
+            ChangeBuildingParent(buildingParent);
+
+            GameObject gridSquare = GameObject.Find("pattern_Square");
+            GameObject gridBuilding = GameObject.Find("building_Square");
+            DestroyImmediate(gridSquare);
+            DestroyImmediate(gridBuilding);
+        }
+    }
+
+    private void ChangeSquareParent(GameObject parentObj)
+    {
+        //outer square
+        for (int col = 3; col < 16; col++)
+        {
+            squareGrid[2, col].transform.parent = parentObj.transform;
+            squareGrid[17, col].transform.parent = parentObj.transform;
+        }
+        for (int row = 2; row < 18; row++)
+        {
+            squareGrid[row, 3].transform.parent = parentObj.transform;
+            squareGrid[row, 15].transform.parent = parentObj.transform;
+        }
+        //square
+        for (int col = 4; col < 15; col++)
+        {
+            squareGrid[3, col].transform.parent = parentObj.transform;
+            squareGrid[16, col].transform.parent = parentObj.transform;
+        }
+        for (int row = 3; row < 17; row++)
+        {
+            squareGrid[row, 4].transform.parent = parentObj.transform;
+            squareGrid[row, 14].transform.parent = parentObj.transform;
+        }
+        //inner square
+        for (int col = 5; col < 14; col++)
+        {
+            squareGrid[4, col].transform.parent = parentObj.transform;
+            squareGrid[15, col].transform.parent = parentObj.transform;
+        }
+        for (int row = 4; row < 16; row++)
+        {
+            squareGrid[row, 5].transform.parent = parentObj.transform;
+            squareGrid[row, 13].transform.parent = parentObj.transform;
+        }
+    }
+
+    private void RenameBuildingInSquare()
+    {
+        GameObject gridSquare = new GameObject("building_Square");
+        GameObject buildingParent = GameObject.Find("IB_Building");
+        gridSquare.transform.parent = buildingParent.transform;
+        gridSquare.AddComponent<LogOnGaze>();
+        ChangeBuildingParent(gridSquare);
+    }
+
+    private static void ChangeBuildingParent(GameObject parentObj)
+    {
+        for (int col = 1; col < 3; col++)
+        {
+            for (int row = 1; row < 5; row++)
+            {
+                GameObject.Find(string.Format("building_{0}_{1}", row.ToString("00"), col.ToString("00"))).transform.parent = parentObj.transform;
             }
         }
     }

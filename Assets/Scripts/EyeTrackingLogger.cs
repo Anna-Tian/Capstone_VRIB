@@ -88,7 +88,8 @@ public class EyeTrackingLogger : MonoBehaviour
                 right_blink = eyeTrackingData.rightEyeOpenness,
                 // isLeftEyeBlinking = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsLeftEyeBlinking,
                 // isRightEyeBlinking = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsRightEyeBlinking,
-                timestamp = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).Timestamp
+                timestamp = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).Timestamp,
+                time = Time.time
             };
             Debug.Log(string.Format("AcquireEyeTrackingData - gazeData: {0}", gazeData.gaze_location));
 
@@ -126,6 +127,7 @@ public class EyeTrackingLogger : MonoBehaviour
         public float left_blink;
         public float right_blink;
         public float timestamp;
+        public float time;
         // public bool isLeftEyeBlinking;
         // public bool isRightEyeBlinking;
         public string objName;

@@ -28,6 +28,24 @@ public class BuildingController : MonoBehaviour
         //ChangePosition();
         // TestCreateParentObject();
         // TestDestroyObject();
+        // ChangeBuildingName();
+    }
+
+    private void ChangeBuildingName()
+    {
+        if (isTesting)
+        {
+            GameObject buildingParent = GameObject.Find("IB_Building");
+            int children = buildingParent.transform.childCount;
+
+            for (int col = 0, i = 0; col < 4; col++)
+            {
+                for (int row = 0; row < 6; row++, i++)
+                {
+                    buildingParent.transform.GetChild(i).name = string.Format("building_{0}_{1}", row.ToString("00"), col.ToString("00"));
+                }
+            }
+        }
     }
 
     private void TestDestroyObject()
@@ -50,6 +68,7 @@ public class BuildingController : MonoBehaviour
         {
             GameObject halfParent = new GameObject("Half_Window");
             halfParent.transform.parent = windows.transform;
+            halfParent.AddComponent<LogOnGaze>();
             for (int i = 0; i < 6; i++)
             {
                 GameObject obj = GameObject.Find(string.Format("windowHalf_{0}", i.ToString("00")));
