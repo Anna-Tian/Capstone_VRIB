@@ -58,7 +58,6 @@ public class ExperimentController : MonoBehaviour
     static public LogWrapper logWrapper = new LogWrapper();
     static public LSLMarkerStream markerStream;
 
-
     // Start is called before the first frame update
     void Start()
     {
@@ -367,17 +366,18 @@ public class ExperimentController : MonoBehaviour
     }
     // private void Start()
     // {
+    //     InitGrid();
     // }
     // private void Update()
     // {
     //     if (isTesting)
     //     {
-    //         // ChangeGrid(1);
-    //         InitGrid();
+    //         ChangeGrid(1);
     //     }
     //     if (isTestingDone)
     //     {
     //         ChangeGrid(3);
+    //         InitGrid();
     //     }
     // }
     private void playStimulus()
@@ -538,13 +538,8 @@ public class ExperimentController : MonoBehaviour
                 squareGrid[row, 5].GetComponent<MeshRenderer>().material = materialWindow;
                 squareGrid[row, 13].GetComponent<MeshRenderer>().material = materialWindow;
             }
-
-            GameObject gridSquare = new GameObject("pattern_Square");
-            GameObject squareParent = GameObject.Find("Windows");
-            gridSquare.transform.parent = squareParent.transform;
-            gridSquare.AddComponent<LogOnGaze>();
-            ChangeSquareParent(gridSquare);
-            RenameBuildingInSquare();
+            ChangeWindowsNameInSquare(true);
+            RenameBuildingNameInSquare("", "_square");
         }
 
         if (type == 2) // diamond
@@ -603,71 +598,87 @@ public class ExperimentController : MonoBehaviour
 
         if (type == 3) // ISI
         {
-            GameObject buildingParent = GameObject.Find("IB_Building");
-            GameObject squareParent = GameObject.Find("Windows");
-            ChangeSquareParent(squareParent);
-            ChangeBuildingParent(buildingParent);
-
-            GameObject gridSquare = GameObject.Find("pattern_Square");
-            GameObject gridBuilding = GameObject.Find("building_Square");
-            DestroyImmediate(gridSquare);
-            DestroyImmediate(gridBuilding);
+            ChangeWindowsNameInSquare(false);
+            RenameBuildingNameInSquare("_square", "");
         }
     }
 
-    private void ChangeSquareParent(GameObject parentObj)
+    private void ChangeWindowsNameInSquare(bool isInSquareMode)
     {
         //outer square
         for (int col = 3; col < 16; col++)
         {
-            squareGrid[2, col].transform.parent = parentObj.transform;
-            squareGrid[17, col].transform.parent = parentObj.transform;
+            GetSquareName(0, col, 2, 17, isInSquareMode);
         }
         for (int row = 2; row < 18; row++)
         {
-            squareGrid[row, 3].transform.parent = parentObj.transform;
-            squareGrid[row, 15].transform.parent = parentObj.transform;
+            GetSquareName(row, 0, 3, 15, isInSquareMode);
         }
         //square
         for (int col = 4; col < 15; col++)
         {
-            squareGrid[3, col].transform.parent = parentObj.transform;
-            squareGrid[16, col].transform.parent = parentObj.transform;
+            GetSquareName(0, col, 3, 16, isInSquareMode);
         }
         for (int row = 3; row < 17; row++)
         {
-            squareGrid[row, 4].transform.parent = parentObj.transform;
-            squareGrid[row, 14].transform.parent = parentObj.transform;
+            GetSquareName(row, 0, 4, 14, isInSquareMode);
         }
         //inner square
         for (int col = 5; col < 14; col++)
         {
-            squareGrid[4, col].transform.parent = parentObj.transform;
-            squareGrid[15, col].transform.parent = parentObj.transform;
+            GetSquareName(0, col, 4, 15, isInSquareMode);
         }
         for (int row = 4; row < 16; row++)
         {
-            squareGrid[row, 5].transform.parent = parentObj.transform;
-            squareGrid[row, 13].transform.parent = parentObj.transform;
+            GetSquareName(row, 0, 5, 13, isInSquareMode);
         }
     }
 
-    private void RenameBuildingInSquare()
+    private void GetSquareName(int row, int col, int start, int end, bool isInSquareMode)
     {
-        GameObject gridSquare = new GameObject("building_Square");
-        GameObject buildingParent = GameObject.Find("IB_Building");
-        gridSquare.transform.parent = buildingParent.transform;
-        gridSquare.AddComponent<LogOnGaze>();
-        ChangeBuildingParent(gridSquare);
+        string squareName1 = "";
+        string squareName2 = "";
+        if (row != 0)
+        {
+            if (isInSquareMode)
+            {
+                squareName1 = string.Format("window_{0}_{1}{2}", (row + 2).ToString("00"), start.ToString("00"), "_square");
+                squareName2 = string.Format("window_{0}_{1}{2}", (row + 2).ToString("00"), end.ToString("00"), "_square");
+            }
+            else
+            {
+                squareName1 = string.Format("window_{0}_{1}{2}", (row + 2).ToString("00"), start.ToString("00"), "");
+                squareName2 = string.Format("window_{0}_{1}{2}", (row + 2).ToString("00"), end.ToString("00"), "");
+            }
+            squareGrid[row, start].transform.name = squareName1;
+            squareGrid[row, end].transform.name = squareName2;
+        }
+        else if (col != 0)
+        {
+            if (isInSquareMode)
+            {
+                squareName1 = string.Format("window_{0}_{1}{2}", (start + 2).ToString("00"), col.ToString("00"), "_square");
+                squareName2 = string.Format("window_{0}_{1}{2}", (end + 2).ToString("00"), col.ToString("00"), "_square");
+            }
+            else
+            {
+                squareName1 = string.Format("window_{0}_{1}{2}", (start + 2).ToString("00"), col.ToString("00"), "");
+                squareName2 = string.Format("window_{0}_{1}{2}", (end + 2).ToString("00"), col.ToString("00"), "");
+            }
+            squareGrid[start, col].transform.name = squareName1;
+            squareGrid[end, col].transform.name = squareName2;
+        }
     }
 
-    private static void ChangeBuildingParent(GameObject parentObj)
+    private void RenameBuildingNameInSquare(string oldName, string newName)
     {
         for (int col = 1; col < 3; col++)
         {
             for (int row = 1; row < 5; row++)
             {
-                GameObject.Find(string.Format("building_{0}_{1}", row.ToString("00"), col.ToString("00"))).transform.parent = parentObj.transform;
+                string oldBuildingName = string.Format("building_{0}_{1}{2}", row.ToString("00"), col.ToString("00"), oldName);
+                string newBuildingName = string.Format("building_{0}_{1}{2}", row.ToString("00"), col.ToString("00"), newName);
+                GameObject.Find(oldBuildingName).transform.name = newBuildingName;
             }
         }
     }
@@ -760,7 +771,6 @@ public class ExperimentController : MonoBehaviour
             isAudioTrialStart = true;
             EnableNavSystem(false);
         }
-
         currentTrial.symbol = HUDIcon.name;
         currentTrial.stimulusType = stimType == 0 ? "Visual" : stimType == 1 ? "Audio" : "Visual + Audio";
 

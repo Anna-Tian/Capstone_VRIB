@@ -7,7 +7,6 @@ using JetBrains.Annotations;
 public class LogOnGaze : MonoBehaviour, IGazeFocusable
 {
     ObjectGaze currentGaze = new ObjectGaze();
-    ExperimentController expctrl;
     string LogFile;
 
     // Start is called before the first frame update
@@ -27,14 +26,13 @@ public class LogOnGaze : MonoBehaviour, IGazeFocusable
         //If this object received focus, LSL SAGAT-on and set start time and object name for log
         if (hasFocus)
         {
-            currentGaze.objName = this.gameObject.name;
             // ExperimentController.markerStream.Write("gzOn" + gameObject.name);
-            currentGaze.gridType = expctrl.currentTrial.gridType;
             currentGaze.startTime = Time.time;
         }
         //If this object lost focus, LSL SAGAT-off and set end time and log.
         else
         {
+            currentGaze.objName = this.gameObject.transform.parent.name + "_" + this.gameObject.name;
             currentGaze.endTime = Time.time;
             // ExperimentController.markerStream.Write("gzOff" + gameObject.name);
             // Logger.log.AddToLog(currentGaze);
@@ -48,7 +46,6 @@ public class LogOnGaze : MonoBehaviour, IGazeFocusable
         public float startTime;
         public float endTime;
         public string objName;
-        public string gridType;
         private bool logged = false;
 
         public void LogToFile(string fileName)

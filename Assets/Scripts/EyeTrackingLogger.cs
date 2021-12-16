@@ -109,7 +109,7 @@ public class EyeTrackingLogger : MonoBehaviour
             if (TobiiXR.FocusedObjects.Count > 0)
             {
                 // Do something with the focused game object
-                gazeData.objName = TobiiXR.FocusedObjects[0].GameObject.name;
+                gazeData.objName = TobiiXR.FocusedObjects[0].GameObject.transform.parent.name + "_" + TobiiXR.FocusedObjects[0].GameObject.name;
             }
 
             // Logger.log.eyeGazeData.Add(gazeData);
