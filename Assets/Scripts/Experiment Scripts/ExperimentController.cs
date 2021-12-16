@@ -376,7 +376,7 @@ public class ExperimentController : MonoBehaviour
     //     }
     //     if (isTestingDone)
     //     {
-    //         ChangeGrid(3);
+    //         // ChangeGrid(3);
     //         InitGrid();
     //     }
     // }
@@ -538,8 +538,6 @@ public class ExperimentController : MonoBehaviour
                 squareGrid[row, 5].GetComponent<MeshRenderer>().material = materialWindow;
                 squareGrid[row, 13].GetComponent<MeshRenderer>().material = materialWindow;
             }
-            ChangeWindowsNameInSquare(true);
-            RenameBuildingNameInSquare("", "_square");
         }
 
         if (type == 2) // diamond
@@ -598,88 +596,6 @@ public class ExperimentController : MonoBehaviour
 
         if (type == 3) // ISI
         {
-            ChangeWindowsNameInSquare(false);
-            RenameBuildingNameInSquare("_square", "");
-        }
-    }
-
-    private void ChangeWindowsNameInSquare(bool isInSquareMode)
-    {
-        //outer square
-        for (int col = 3; col < 16; col++)
-        {
-            GetSquareName(0, col, 2, 17, isInSquareMode);
-        }
-        for (int row = 2; row < 18; row++)
-        {
-            GetSquareName(row, 0, 3, 15, isInSquareMode);
-        }
-        //square
-        for (int col = 4; col < 15; col++)
-        {
-            GetSquareName(0, col, 3, 16, isInSquareMode);
-        }
-        for (int row = 3; row < 17; row++)
-        {
-            GetSquareName(row, 0, 4, 14, isInSquareMode);
-        }
-        //inner square
-        for (int col = 5; col < 14; col++)
-        {
-            GetSquareName(0, col, 4, 15, isInSquareMode);
-        }
-        for (int row = 4; row < 16; row++)
-        {
-            GetSquareName(row, 0, 5, 13, isInSquareMode);
-        }
-    }
-
-    private void GetSquareName(int row, int col, int start, int end, bool isInSquareMode)
-    {
-        string squareName1 = "";
-        string squareName2 = "";
-        if (row != 0)
-        {
-            if (isInSquareMode)
-            {
-                squareName1 = string.Format("window_{0}_{1}{2}", (row + 2).ToString("00"), start.ToString("00"), "_square");
-                squareName2 = string.Format("window_{0}_{1}{2}", (row + 2).ToString("00"), end.ToString("00"), "_square");
-            }
-            else
-            {
-                squareName1 = string.Format("window_{0}_{1}{2}", (row + 2).ToString("00"), start.ToString("00"), "");
-                squareName2 = string.Format("window_{0}_{1}{2}", (row + 2).ToString("00"), end.ToString("00"), "");
-            }
-            squareGrid[row, start].transform.name = squareName1;
-            squareGrid[row, end].transform.name = squareName2;
-        }
-        else if (col != 0)
-        {
-            if (isInSquareMode)
-            {
-                squareName1 = string.Format("window_{0}_{1}{2}", (start + 2).ToString("00"), col.ToString("00"), "_square");
-                squareName2 = string.Format("window_{0}_{1}{2}", (end + 2).ToString("00"), col.ToString("00"), "_square");
-            }
-            else
-            {
-                squareName1 = string.Format("window_{0}_{1}{2}", (start + 2).ToString("00"), col.ToString("00"), "");
-                squareName2 = string.Format("window_{0}_{1}{2}", (end + 2).ToString("00"), col.ToString("00"), "");
-            }
-            squareGrid[start, col].transform.name = squareName1;
-            squareGrid[end, col].transform.name = squareName2;
-        }
-    }
-
-    private void RenameBuildingNameInSquare(string oldName, string newName)
-    {
-        for (int col = 1; col < 3; col++)
-        {
-            for (int row = 1; row < 5; row++)
-            {
-                string oldBuildingName = string.Format("building_{0}_{1}{2}", row.ToString("00"), col.ToString("00"), oldName);
-                string newBuildingName = string.Format("building_{0}_{1}{2}", row.ToString("00"), col.ToString("00"), newName);
-                GameObject.Find(oldBuildingName).transform.name = newBuildingName;
-            }
         }
     }
 

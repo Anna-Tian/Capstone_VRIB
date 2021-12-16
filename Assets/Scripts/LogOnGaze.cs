@@ -28,11 +28,25 @@ public class LogOnGaze : MonoBehaviour, IGazeFocusable
         {
             // ExperimentController.markerStream.Write("gzOn" + gameObject.name);
             currentGaze.startTime = Time.time;
+            currentGaze.stimulusType = GameObject.Find("ExperimentController").GetComponent<ExperimentController>().currentTrial.stimulusType;
         }
         //If this object lost focus, LSL SAGAT-off and set end time and log.
         else
         {
-            currentGaze.objName = this.gameObject.transform.parent.name + "_" + this.gameObject.name;
+            currentGaze.symbol = GameObject.Find("ExperimentController").GetComponent<ExperimentController>().currentTrial.symbol;
+            currentGaze.gridType = GameObject.Find("ExperimentController").GetComponent<ExperimentController>().currentTrial.gridType;
+            if (this.gameObject.name.Contains("_square") && currentGaze.gridType == "square")
+            {
+                currentGaze.objName = this.gameObject.transform.parent.name + "_" + this.gameObject.name;
+            }
+            else if (this.gameObject.name.Contains("_square") && currentGaze.gridType != "square")
+            {
+                currentGaze.objName = this.gameObject.transform.parent.name + "_" + this.gameObject.name.Substring(0, this.gameObject.name.Length - 7);
+            }
+            else
+            {
+                currentGaze.objName = this.gameObject.transform.parent.name + "_" + this.gameObject.name;
+            }
             currentGaze.endTime = Time.time;
             // ExperimentController.markerStream.Write("gzOff" + gameObject.name);
             // Logger.log.AddToLog(currentGaze);
@@ -46,6 +60,9 @@ public class LogOnGaze : MonoBehaviour, IGazeFocusable
         public float startTime;
         public float endTime;
         public string objName;
+        public string symbol;
+        public string stimulusType;
+        public string gridType;
         private bool logged = false;
 
         public void LogToFile(string fileName)
