@@ -35,18 +35,13 @@ public class LogOnGaze : MonoBehaviour, IGazeFocusable
         {
             currentGaze.symbol = GameObject.Find("ExperimentController").GetComponent<ExperimentController>().currentTrial.symbol;
             currentGaze.gridType = GameObject.Find("ExperimentController").GetComponent<ExperimentController>().currentTrial.gridType;
-            if (this.gameObject.name.Contains("_square") && currentGaze.gridType == "square")
+            if (this.gameObject.name.Contains("_square") || this.gameObject.name.Contains("_diamond"))
             {
-                currentGaze.objName = this.gameObject.transform.parent.name + "_" + this.gameObject.name;
+                if (currentGaze.gridType == "square") currentGaze.objName = this.gameObject.name.Replace("_diamond", "");
+                else if (currentGaze.gridType == "diamond") currentGaze.objName = this.gameObject.name.Replace("_square", "");
+                else currentGaze.objName = this.gameObject.name.Replace("_square_diamond", "");
             }
-            else if (this.gameObject.name.Contains("_square") && currentGaze.gridType != "square")
-            {
-                currentGaze.objName = this.gameObject.transform.parent.name + "_" + this.gameObject.name.Substring(0, this.gameObject.name.Length - 7);
-            }
-            else
-            {
-                currentGaze.objName = this.gameObject.transform.parent.name + "_" + this.gameObject.name;
-            }
+            else currentGaze.objName = this.gameObject.transform.parent.name + "_" + this.gameObject.name;
             currentGaze.endTime = Time.time;
             // ExperimentController.markerStream.Write("gzOff" + gameObject.name);
             // Logger.log.AddToLog(currentGaze);
