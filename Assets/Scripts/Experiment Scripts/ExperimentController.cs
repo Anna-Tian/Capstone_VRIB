@@ -56,7 +56,7 @@ public class ExperimentController : MonoBehaviour
     ExperimentState currentState = ExperimentState.Startup;
 
     static public LogWrapper logWrapper = new LogWrapper();
-    static public LSLMarkerStream markerStream;
+    //static public LSLMarkerStream markerStream;
 
     // Start is called before the first frame update
     void Start()
@@ -75,9 +75,9 @@ public class ExperimentController : MonoBehaviour
         randomUnexpArray = GenerateRandomArray(10, randomUnexpArray);
         InitGrid();
 
-        // markerStream = FindObjectOfType<LSLMarkerStream>();
-        // markerStream.gameObject.SetActive(false);
-        // markerStream.gameObject.SetActive(true);
+        //markerStream = FindObjectOfType<LSLMarkerStream>();
+        //markerStream.gameObject.SetActive(false);
+        //markerStream.gameObject.SetActive(true);
     }
 
     // Update is called once per frame
@@ -722,6 +722,7 @@ public class ExperimentController : MonoBehaviour
     {
         currentTrial.noticeTime = noticetime;
         crosshair.GetComponent<Image>().color = Color.green;
+        //markerStream.Write("noticed");
     }
 
     #region WebGL Stuff
