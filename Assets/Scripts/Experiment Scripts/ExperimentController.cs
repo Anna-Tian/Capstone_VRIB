@@ -10,6 +10,7 @@ using System.Linq;
 using Pvr_UnitySDKAPI;
 using LSL;
 using Assets.LSL4Unity.Scripts;
+using Valve.VR;
 
 // [ExecuteInEditMode]
 public class ExperimentController : MonoBehaviour
@@ -17,6 +18,10 @@ public class ExperimentController : MonoBehaviour
     public const bool DEBUG = false;
     public bool isTesting;
     public bool isTestingDone;
+
+    public SteamVR_Action_Boolean AAA;
+    public bool isAAA;
+    public SteamVR_Input_Sources handType;
 
     public Material materialWindowLight;
     public Material materialWindow;
@@ -78,6 +83,7 @@ public class ExperimentController : MonoBehaviour
         //markerStream = FindObjectOfType<LSLMarkerStream>();
         //markerStream.gameObject.SetActive(false);
         //markerStream.gameObject.SetActive(true);
+        AAA.AddOnStateDownListener(AAAMethod, handType);
     }
 
     // Update is called once per frame
@@ -85,67 +91,14 @@ public class ExperimentController : MonoBehaviour
     void Update()
     {
 
-        if (Input.GetKeyDown(KeyCode.Escape) || Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.B))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             Application.Quit();
             // logWrapper.LogToFile(LogFile);
         }
 
-        #region Close Menu
-        if ((Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && menuOpen)
-        {
-            menuScreen.SetActive(false);
-            menuOpen = false;
-
-            foreach (Transform child in menuScreen.transform.Find("Menu Slides"))
-            {
-                child.gameObject.SetActive(false);
-            }
-
-            if (currentState == ExperimentState.Startup)
-            {
-                menuScreen.SetActive(true);
-                menuScreen.transform.Find("Menu Slides").Find("Symbol Training").gameObject.SetActive(true);
-                menuOpen = true;
-                currentState = ExperimentState.SymbolTraining;
-            }
-
-            if (currentState == ExperimentState.SymbolTraining && !menuOpen)
-            {
-                Camera.main.GetComponent<CameraController>().enabled = true;
-                transform.Find("ExperimentObjects").Find("Pairing Screen").gameObject.SetActive(true);
-            }
-
-            if (currentState == ExperimentState.TrainingImage)
-            {
-                if (instructionMenuNum < 4)
-                {
-                    menuScreen.SetActive(true);
-                    menuOpen = true;
-                    menuScreen.transform.Find("Menu Slides").Find("Training Images").gameObject.SetActive(true);
-                    menuScreen.transform.Find("Menu Slides").Find("Training Images").GetChild(++instructionMenuNum).gameObject.SetActive(true);
-                    menuScreen.transform.Find("Menu Slides").Find("Training Images").Find("Title").GetComponent<Text>().text = string.Format("Task Instruction ({0}/3)", instructionMenuNum);
-                    if (instructionMenuNum == 3) menuScreen.transform.Find("Menu Slides").Find("Training Images").Find("NextInstruction").GetComponent<Text>().text = "Press \"A\" from controller to continue to start Training";
-                }
-                if (instructionMenuNum == 4)
-                {
-                    menuScreen.SetActive(false);
-                    menuOpen = false;
-                    menuScreen.transform.Find("Menu Slides").Find("Training Images").gameObject.SetActive(false);
-                    currentState = ExperimentState.Training;
-                }
-            }
-
-            stimDelay = Random.Range(0.6f, 0.8f);
-            currentTrial = new ExperimentTrial(Time.time, 0f, "", "", ""); // reset to stop noticeStimulus from firing
-            currentTrial.endTime = Time.time;
-            currentTrial.startTime = Time.time + stimDelay;
-            //Camera.main.transform.localRotation = Quaternion.identity;
-        }
-        #endregion
-
         #region Symbol Training->Training Menu
-        if ((Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && currentState == ExperimentState.SymbolTraining && !menuOpen && trialsDone >= 15)
+        if ((isAAA|| Input.GetKeyDown(KeyCode.Tab)) && currentState == ExperimentState.SymbolTraining && !menuOpen && trialsDone >= 15)
         {
             trialsDone = 0;
             transform.Find("ExperimentObjects").Find("Pairing Screen").gameObject.SetActive(false);
@@ -158,7 +111,7 @@ public class ExperimentController : MonoBehaviour
         }
         #endregion
         #region Training Image->Training
-        if ((Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && currentState == ExperimentState.Training && !menuOpen)
+        if ((isAAA || Input.GetKeyDown(KeyCode.Tab)) && currentState == ExperimentState.Training && !menuOpen)
         {
             EventRunning = true;
             inTraining = true;
@@ -248,7 +201,7 @@ public class ExperimentController : MonoBehaviour
         }
         #endregion
         #region Interim ->Next Phase
-        if ((Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && !experimentRunning && inInterim && currentState == ExperimentState.Break)
+        if ((isAAA|| Input.GetKeyDown(KeyCode.Tab)) && !experimentRunning && inInterim && currentState == ExperimentState.Break)
         {
             trialsDone = 0;
             EventRunning = true;
@@ -287,7 +240,7 @@ public class ExperimentController : MonoBehaviour
                 }
 
                 // will result incorrect data for last trial in case (trialsDone == trialsCount)
-                if (trialsDone == trialsCount + 1 || Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.APP) || Input.GetKeyDown(KeyCode.S))
+                if (trialsDone == trialsCount + 1 || isAAA || Input.GetKeyDown(KeyCode.S))
                 {
                     EventRunning = false;
                     trialsDone = trialsCount;
@@ -315,7 +268,7 @@ public class ExperimentController : MonoBehaviour
                     menuScreen.transform.Find("Menu Slides").Find("Questionnaire").gameObject.SetActive(true);
                 }
 
-                if (Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.TRIGGER) || Input.GetKeyDown(KeyCode.Space))
+                if (isAAA  || Input.GetKeyDown(KeyCode.Space))
                 {
                     NoticeStimulus(Time.time);
                 }
@@ -338,7 +291,7 @@ public class ExperimentController : MonoBehaviour
 
                 // will result incorrect data for last trial in case (trialsDone == trialsCount)
                 // skip for debugging
-                if (trialsDone == trialsCount + 1 || Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.APP) || Input.GetKeyDown(KeyCode.S))
+                if (trialsDone == trialsCount + 1 || isAAA || Input.GetKeyDown(KeyCode.S))
                 {
                     inTraining = false;
                     EventRunning = false;
@@ -349,7 +302,7 @@ public class ExperimentController : MonoBehaviour
                     transform.Find("ExperimentObjects").Find("NoticeScreen").gameObject.SetActive(false);
                 }
 
-                if (Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.TRIGGER) || Input.GetKeyDown(KeyCode.Space))
+                if (isAAA  || Input.GetKeyDown(KeyCode.Space))
                 {
                     NoticeStimulus(Time.time);
                 }
@@ -380,6 +333,60 @@ public class ExperimentController : MonoBehaviour
     //         InitGrid();
     //     }
     // }
+
+    private void AAAMethod(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
+    {
+        if (Input.GetKeyDown(KeyCode.Tab) || menuOpen)
+        {
+            menuScreen.SetActive(false);
+            menuOpen = false;
+
+            foreach (Transform child in menuScreen.transform.Find("Menu Slides"))
+            {
+                child.gameObject.SetActive(false);
+            }
+
+            if (currentState == ExperimentState.Startup)
+            {
+                menuScreen.SetActive(true);
+                menuScreen.transform.Find("Menu Slides").Find("Symbol Training").gameObject.SetActive(true);
+                menuOpen = true;
+                currentState = ExperimentState.SymbolTraining;
+            }
+
+            if (currentState == ExperimentState.SymbolTraining && !menuOpen)
+            {
+                Camera.main.GetComponent<CameraController>().enabled = true;
+                transform.Find("ExperimentObjects").Find("Pairing Screen").gameObject.SetActive(true);
+            }
+
+            if (currentState == ExperimentState.TrainingImage)
+            {
+                if (instructionMenuNum < 4)
+                {
+                    menuScreen.SetActive(true);
+                    menuOpen = true;
+                    menuScreen.transform.Find("Menu Slides").Find("Training Images").gameObject.SetActive(true);
+                    menuScreen.transform.Find("Menu Slides").Find("Training Images").GetChild(++instructionMenuNum).gameObject.SetActive(true);
+                    menuScreen.transform.Find("Menu Slides").Find("Training Images").Find("Title").GetComponent<Text>().text = string.Format("Task Instruction ({0}/3)", instructionMenuNum);
+                    if (instructionMenuNum == 3) menuScreen.transform.Find("Menu Slides").Find("Training Images").Find("NextInstruction").GetComponent<Text>().text = "Press \"A\" from controller to continue to start Training";
+                }
+                if (instructionMenuNum == 4)
+                {
+                    menuScreen.SetActive(false);
+                    menuOpen = false;
+                    menuScreen.transform.Find("Menu Slides").Find("Training Images").gameObject.SetActive(false);
+                    currentState = ExperimentState.Training;
+                }
+            }
+
+            stimDelay = Random.Range(0.6f, 0.8f);
+            currentTrial = new ExperimentTrial(Time.time, 0f, "", "", ""); // reset to stop noticeStimulus from firing
+            currentTrial.endTime = Time.time;
+            currentTrial.startTime = Time.time + stimDelay;
+            //Camera.main.transform.localRotation = Quaternion.identity;
+        }
+    }
     private void playStimulus()
     {
         if (lastTime + stimDelay < Time.time)
@@ -861,5 +868,5 @@ public class ExperimentController : MonoBehaviour
 /**
 Input.GetKeyDown(KeyCode.S) => Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.APP) || Input.GetKeyDown(KeyCode.S)
 Input.GetKeyDown(KeyCode.Tab) => Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)
-Input.GetKeyDown(KeyCode.Space) => Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.TRIGGER) || Input.GetKeyDown(KeyCode.Space)
+Input.GetKeyDown(KeyCode.Space) => isAAA  || Input.GetKeyDown(KeyCode.Space)
 **/

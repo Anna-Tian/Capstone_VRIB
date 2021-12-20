@@ -33,8 +33,6 @@ public class EyeTrackingLogger : MonoBehaviour
     public float frequency = 120.0f;
 
     private float time_frequency;
-    private Pvr_UnitySDKAPI.EyeTrackingData eyeTrackingData;
-    private Pvr_UnitySDKAPI.EyeTrackingGazeRay gazeRay;
 
     // Start is called before the first frame update
     void Start()
@@ -74,20 +72,18 @@ public class EyeTrackingLogger : MonoBehaviour
         timeCounter += Time.deltaTime;
         // EyeTrackingData eyeTrackingData = new EyeTrackingData();
         // EyeTrackingGazeRay gazeRay = new EyeTrackingGazeRay();
-        bool isEyeTrackingData = Pvr_UnitySDKAPI.System.UPvr_getEyeTrackingData(ref eyeTrackingData);
-        bool isGazeRay = Pvr_UnitySDKAPI.System.UPvr_getEyeTrackingGazeRay(ref gazeRay);
-        if (timeCounter >= time_frequency && isEyeTrackingData && isGazeRay)
+        if (timeCounter >= time_frequency)
         {
             timeCounter = 0.0f;
 
             var gazeData = new EyeGazeData
             {
-                gaze_location = gazeRay.Origin,
-                gaze_direction = gazeRay.Direction,
-                left_blink = eyeTrackingData.leftEyeOpenness,
-                right_blink = eyeTrackingData.rightEyeOpenness,
-                // isLeftEyeBlinking = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsLeftEyeBlinking,
-                // isRightEyeBlinking = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsRightEyeBlinking,
+                gaze_location = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).GazeRay.Origin,
+                gaze_direction = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).GazeRay.Direction,
+                //left_blink = eyeTrackingData.leftEyeOpenness,
+                //right_blink = eyeTrackingData.rightEyeOpenness,
+                isLeftEyeBlinking = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsLeftEyeBlinking,
+                isRightEyeBlinking = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsRightEyeBlinking,
                 timestamp = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).Timestamp,
                 time = Time.time
             };
@@ -124,12 +120,12 @@ public class EyeTrackingLogger : MonoBehaviour
     {
         public Vector3 gaze_location;
         public Vector3 gaze_direction;
-        public float left_blink;
-        public float right_blink;
+        //public float left_blink;
+        //public float right_blink;
         public float timestamp;
         public float time;
-        // public bool isLeftEyeBlinking;
-        // public bool isRightEyeBlinking;
+        public bool isLeftEyeBlinking;
+        public bool isRightEyeBlinking;
         public string objName;
         private bool logged = false;
 
