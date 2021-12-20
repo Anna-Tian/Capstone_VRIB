@@ -27,6 +27,7 @@ public class AwarenessQuestionnaire : MonoBehaviour
         if (answer == "No")
         {
             transform.Find("Question 1").Find("Q1Next").gameObject.SetActive(true);
+            transform.Find("Question 2").gameObject.SetActive(false);
         }
         question.q1 = answer;
     }
