@@ -47,25 +47,25 @@ public class EyeTrackingLogger : MonoBehaviour
     void Update()
     {
         AcquireEyeTrackingData();
-        // EyeBlinkingEvent();
+        EyeBlinkingEvent();
     }
 
 
-    /// <summary>
-    /// Every time it will check if the user blinked, if so, will send an event for blinking
-    /// </summary>
-    // private void EyeBlinkingEvent()
-    // {
-    //   if (TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsLeftEyeBlinking)
-    //   {
-    //     Logger.markerStream.Write("LEFT_BLINK");
-    //   }
+    // <summary>
+    // Every time it will check if the user blinked, if so, will send an event for blinking
+    // </summary>
+    private void EyeBlinkingEvent()
+    {
+        if (TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsLeftEyeBlinking)
+        {
+            ExperimentController.markerStream.Write("LEFT_BLINK");
+        }
 
-    //   if (TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsRightEyeBlinking)
-    //   {
-    //     Logger.markerStream.Write("RIGHT_BLINK");
-    //   }
-    // }
+        if (TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsRightEyeBlinking)
+        {
+            ExperimentController.markerStream.Write("RIGHT_BLINK");
+        }
+    }
 
     private void AcquireEyeTrackingData()
     {

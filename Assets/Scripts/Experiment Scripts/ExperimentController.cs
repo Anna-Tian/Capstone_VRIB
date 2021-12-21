@@ -67,7 +67,7 @@ public class ExperimentController : MonoBehaviour
     ExperimentState currentState = ExperimentState.Startup;
 
     static public LogWrapper logWrapper = new LogWrapper();
-    //static public LSLMarkerStream markerStream;
+    static public LSLMarkerStream markerStream;
 
     // Start is called before the first frame update
     void Start()
@@ -85,11 +85,11 @@ public class ExperimentController : MonoBehaviour
         lastTime = Time.time;
         randomUnexpArray = GenerateRandomArray(10, randomUnexpArray);
         InitGrid();
-        //markerStream = FindObjectOfType<LSLMarkerStream>();
-        //markerStream.gameObject.SetActive(false);
-        //markerStream.gameObject.SetActive(true);
         controller_A.AddOnStateDownListener(ControllerAMethod, handType);
         controller_Trigger.AddOnStateDownListener(ControllerTriggerMethod, handType);
+        markerStream = FindObjectOfType<LSLMarkerStream>();
+        markerStream.gameObject.SetActive(false);
+        markerStream.gameObject.SetActive(true);
     }
 
     // Update is called once per frame
@@ -467,7 +467,6 @@ public class ExperimentController : MonoBehaviour
             lastTime = Time.time;
             currentTrial.targetEndTime = Time.time;
             currentTrial.LogToFile(LogFile);
-
         }
 
     }
@@ -523,9 +522,12 @@ public class ExperimentController : MonoBehaviour
 
         }
 
+        string isTargetSymbol = (currentTrial.symbol == "Human Speech") ? "targetSymbol" : "nonTargetSysmol";
         if (type == 0) // random
         {
             currentTrial.gridType = "random";
+
+            markerStream.Write("random + " + isTargetSymbol);
         }
 
         if (type == 1) // square
@@ -565,6 +567,7 @@ public class ExperimentController : MonoBehaviour
                 squareGrid[row, 5].GetComponent<MeshRenderer>().material = materialWindow;
                 squareGrid[row, 13].GetComponent<MeshRenderer>().material = materialWindow;
             }
+            markerStream.Write("square + " + isTargetSymbol);
         }
 
         if (type == 2) // diamond
@@ -619,11 +622,13 @@ public class ExperimentController : MonoBehaviour
 
                 }
             }
+            markerStream.Write("diamond + " + isTargetSymbol);
         }
 
         if (type == 3) // ISI
         {
         }
+
     }
 
     public int[] GenerateRandomArray(int count, int[] array)
@@ -716,7 +721,7 @@ public class ExperimentController : MonoBehaviour
         }
         currentTrial.symbol = HUDIcon.name;
         currentTrial.stimulusType = stimType == 0 ? "Visual" : stimType == 1 ? "Audio" : "Visual + Audio";
-
+        if (currentTrial.symbol == "Human Speech") markerStream.Write("target appeared + " + currentTrial.stimulusType);
     }
 
     public void ResolveEventAngle(GameObject obj)
@@ -749,7 +754,7 @@ public class ExperimentController : MonoBehaviour
     {
         currentTrial.noticeTime = noticetime;
         crosshair.GetComponent<Image>().color = Color.green;
-        //markerStream.Write("noticed");
+        markerStream.Write("noticed");
     }
 
 
