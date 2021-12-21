@@ -429,16 +429,20 @@ public class ExperimentController : MonoBehaviour
                 currentTrial.startTime = Time.time;
                 trialsDone++;
 
-                if (unexpsDone == 10)
+                if (inTraining) ChangeGrid(0);
+                else if (experimentRunning)
                 {
-                    randomUnexpArray = GenerateRandomArray(10, randomUnexpArray);
-                    unexpsDone = 0;
-                }
-                if (randomUnexpArray[unexpsDone] < 5) ChangeGrid(0);
-                else if (randomUnexpArray[unexpsDone] >= 5 && randomUnexpArray[unexpsDone] < 9) ChangeGrid(1);
-                else
-                {
-                    ChangeGrid(2);
+                    if (unexpsDone == 10)
+                    {
+                        randomUnexpArray = GenerateRandomArray(10, randomUnexpArray);
+                        unexpsDone = 0;
+                    }
+                    if (randomUnexpArray[unexpsDone] < 5) ChangeGrid(0);
+                    else if (randomUnexpArray[unexpsDone] >= 5 && randomUnexpArray[unexpsDone] < 9) ChangeGrid(1);
+                    else
+                    {
+                        ChangeGrid(2);
+                    }
                 }
                 unexpsDone++;
             }
