@@ -47,7 +47,6 @@ public class PlayRandomAudio : MonoBehaviour
                 }
                 audioSource.Play();
                 audioSource.volume = 0.1f;
-                expctrl.currentTrial.audioName = clipAudio[clipNum].name;
             }
         }
         if (expctrl && expctrl.EventRunning)

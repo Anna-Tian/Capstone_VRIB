@@ -87,7 +87,7 @@ public class EyeTrackingLogger : MonoBehaviour
                 timestamp = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).Timestamp,
                 time = Time.time
             };
-            Debug.Log(string.Format("AcquireEyeTrackingData - gazeData: {0}", gazeData.gaze_location));
+            // Debug.Log(string.Format("AcquireEyeTrackingData - gazeData: {0}", gazeData.gaze_location));
 
             // if (eyeTrackingData.leftEyeOpenness == 0) ExperimentController.markerStream.Write("LEFT_BLINK");
             // if (eyeTrackingData.rightEyeOpenness == 0) ExperimentController.markerStream.Write("RIGHT_BLINK");

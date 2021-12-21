@@ -24,5 +24,13 @@ namespace Valve.VR
                 return SteamVR_Actions.stimulusNotice_NoticedStimulus;
             }
         }
+        
+        public virtual SteamVR_Action_Boolean GoNext
+        {
+            get
+            {
+                return SteamVR_Actions.stimulusNotice_GoNext;
+            }
+        }
     }
 }

@@ -26,9 +26,9 @@ public class LogOnGaze : MonoBehaviour, IGazeFocusable
         //If this object received focus, LSL SAGAT-on and set start time and object name for log
         if (hasFocus)
         {
-            // ExperimentController.markerStream.Write("gzOn" + gameObject.name);
             currentGaze.startTime = Time.time;
             currentGaze.stimulusType = GameObject.Find("ExperimentController").GetComponent<ExperimentController>().currentTrial.stimulusType;
+            // ExperimentController.markerStream.Write("gzOn" + gameObject.name);
         }
         //If this object lost focus, LSL SAGAT-off and set end time and log.
         else
@@ -43,10 +43,10 @@ public class LogOnGaze : MonoBehaviour, IGazeFocusable
             }
             else currentGaze.objName = this.gameObject.transform.parent.name + "_" + this.gameObject.name;
             currentGaze.endTime = Time.time;
-            // ExperimentController.markerStream.Write("gzOff" + gameObject.name);
             // Logger.log.AddToLog(currentGaze);
             currentGaze.LogToFile(LogFile);
             currentGaze = new ObjectGaze();
+            // ExperimentController.markerStream.Write("gzOff" + gameObject.name);
         }
     }
     [System.Serializable]

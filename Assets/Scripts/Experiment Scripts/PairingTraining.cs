@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Pvr_UnitySDKAPI;
+using Valve.VR.Extras;
 
 public class PairingTraining : MonoBehaviour
 {
@@ -16,7 +17,6 @@ public class PairingTraining : MonoBehaviour
     SymbolTrainingTrial currentTrial = new SymbolTrainingTrial(0, "null");
     float qStartTime = 0;
     string[] btnName = new string[5] { "Animal", "Explosion", "Ground Vehicle", "Human Speech", "Unidentified" };
-
     // Start is called before the first frame update
     void Start()
     {
@@ -27,7 +27,7 @@ public class PairingTraining : MonoBehaviour
 
     void Update()
     {
-        if (Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.APP) || Input.GetKeyDown(KeyCode.S)) expctrl.trialsDone = 15;
+        if (Input.GetKeyDown(KeyCode.S)) expctrl.trialsDone = 15;
     }
 
     public void InputAnswer(string answer)

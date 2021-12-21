@@ -89,6 +89,10 @@
     {
       "name": "/actions/StimulusNotice/in/NoticedStimulus",
       "type": "boolean"
+    },
+    {
+      "name": "/actions/StimulusNotice/in/GoNext",
+      "type": "boolean"
     }
   ],
   "action_sets": [

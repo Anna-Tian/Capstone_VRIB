@@ -11,6 +11,7 @@ using Pvr_UnitySDKAPI;
 using LSL;
 using Assets.LSL4Unity.Scripts;
 using Valve.VR;
+using Valve.VR.Extras;
 
 // [ExecuteInEditMode]
 public class ExperimentController : MonoBehaviour
@@ -135,9 +136,10 @@ public class ExperimentController : MonoBehaviour
                     menuScreen.SetActive(true);
                     menuOpen = true;
                     menuScreen.transform.Find("Menu Slides").Find("Training Images").gameObject.SetActive(true);
-                    menuScreen.transform.Find("Menu Slides").Find("Training Images").GetChild(++instructionMenuNum).gameObject.SetActive(true);
-                    menuScreen.transform.Find("Menu Slides").Find("Training Images").Find("Title").GetComponent<Text>().text = string.Format("Task Instruction ({0}/3)", instructionMenuNum);
+                    menuScreen.transform.Find("Menu Slides").Find("Training Images").GetChild(instructionMenuNum + 1).gameObject.SetActive(true);
+                    menuScreen.transform.Find("Menu Slides").Find("Training Images").Find("Title").GetComponent<Text>().text = string.Format("Task Instruction ({0}/3)", instructionMenuNum + 1);
                     if (instructionMenuNum == 3) menuScreen.transform.Find("Menu Slides").Find("Training Images").Find("NextInstruction").GetComponent<Text>().text = "Press \"A\" from controller to continue to start Training";
+                    instructionMenuNum++;
                 }
                 if (instructionMenuNum == 4)
                 {
@@ -145,6 +147,7 @@ public class ExperimentController : MonoBehaviour
                     menuOpen = false;
                     menuScreen.transform.Find("Menu Slides").Find("Training Images").gameObject.SetActive(false);
                     currentState = ExperimentState.Training;
+                    isControllerAClicked = true;
                 }
             }
 
@@ -753,7 +756,13 @@ public class ExperimentController : MonoBehaviour
 
     private void ControllerTriggerMethod(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
     {
-        isControllerTriggerClicked = true;
+        if (experimentRunning || inTraining) isControllerTriggerClicked = true;
+        else
+        {
+            Debug.Log(string.Format("PointerClick - {0}", this.gameObject.name));
+
+        }
+
     }
 
     #region WebGL Stuff
