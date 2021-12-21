@@ -61,7 +61,7 @@ public class ExperimentController : MonoBehaviour
     int[] randomUnexpArray = new int[10];
     int unexpsDone = 0;
     bool isBgAudioStart = false;
-    public bool isQtnDone = false;
+    // public bool isQtnDone = false;
 
     enum ExperimentState { Startup, SymbolTraining, Training, Experiment, Break, Complete, TrainingImage, Questionnaire };
     ExperimentState currentState = ExperimentState.Startup;
@@ -236,9 +236,9 @@ public class ExperimentController : MonoBehaviour
         }
         #endregion
         #region Questionnaire->Interim/EndScreen
-        if (currentState == ExperimentState.Questionnaire && isQtnDone)
+        if ((isControllerAClicked || Input.GetKeyDown(KeyCode.Tab)) && currentState == ExperimentState.Questionnaire)
         {
-            isQtnDone = false;
+            isControllerAClicked = false;
             inInterim = true;
             currentState = ExperimentState.Break;
             menuOpen = true;

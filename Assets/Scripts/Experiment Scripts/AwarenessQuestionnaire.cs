@@ -121,7 +121,7 @@ public class AwarenessQuestionnaire : MonoBehaviour
         transform.Find("Question 4").Find("Q4Submit").gameObject.SetActive(false);
         transform.Find("ViewPatternsBtn").gameObject.SetActive(false);
 
-        expctrl.isQtnDone = true;
+        // expctrl.isQtnDone = true;
 
     }
 
