@@ -4,6 +4,18 @@ using UnityEngine;
 using Tobii.G2OM;
 using JetBrains.Annotations;
 
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Formatters.Binary;
+using UnityEngine.UI;
+using SickscoreGames.HUDNavigationSystem;
+using System.Linq;
+using Pvr_UnitySDKAPI;
+using LSL;
+using Assets.LSL4Unity.Scripts;
+using Valve.VR;
+using Valve.VR.Extras;
+
 public class LogOnGaze : MonoBehaviour, IGazeFocusable
 {
     ObjectGaze currentGaze = new ObjectGaze();
@@ -28,6 +40,11 @@ public class LogOnGaze : MonoBehaviour, IGazeFocusable
         {
             currentGaze.startTime = Time.time;
             currentGaze.stimulusType = GameObject.Find("ExperimentController").GetComponent<ExperimentController>().currentTrial.stimulusType;
+
+            if (this.gameObject.name.Contains("Button"))
+            {
+                this.gameObject.GetComponent<Image>().color = Color.red;
+            }
             ExperimentController.markerStream.Write("gzOn" + gameObject.name);
         }
         //If this object lost focus, LSL SAGAT-off and set end time and log.
@@ -46,6 +63,11 @@ public class LogOnGaze : MonoBehaviour, IGazeFocusable
             // Logger.log.AddToLog(currentGaze);
             currentGaze.LogToFile(LogFile);
             currentGaze = new ObjectGaze();
+
+            if (this.gameObject.name.Contains("Button"))
+            {
+                this.gameObject.GetComponent<Image>().color = Color.green;
+            }
             ExperimentController.markerStream.Write("gzOff" + gameObject.name);
         }
     }
