@@ -428,15 +428,15 @@ public class ExperimentController : MonoBehaviour
 
                 currentTrial.startTime = Time.time;
                 trialsDone++;
+                if (unexpsDone == 10)
+                {
+                    randomUnexpArray = GenerateRandomArray(10, randomUnexpArray);
+                    unexpsDone = 0;
+                }
 
                 if (inTraining) ChangeGrid(0);
                 else if (experimentRunning)
                 {
-                    if (unexpsDone == 10)
-                    {
-                        randomUnexpArray = GenerateRandomArray(10, randomUnexpArray);
-                        unexpsDone = 0;
-                    }
                     if (randomUnexpArray[unexpsDone] < 5) ChangeGrid(0);
                     else if (randomUnexpArray[unexpsDone] >= 5 && randomUnexpArray[unexpsDone] < 9) ChangeGrid(1);
                     else
@@ -527,7 +527,7 @@ public class ExperimentController : MonoBehaviour
         {
             currentTrial.gridType = "random";
 
-            markerStream.Write("random + " + isTargetSymbol);
+            markerStream.Write("random_" + isTargetSymbol);
         }
 
         if (type == 1) // square
@@ -567,7 +567,7 @@ public class ExperimentController : MonoBehaviour
                 squareGrid[row, 5].GetComponent<MeshRenderer>().material = materialWindow;
                 squareGrid[row, 13].GetComponent<MeshRenderer>().material = materialWindow;
             }
-            markerStream.Write("square + " + isTargetSymbol);
+            markerStream.Write("square_" + isTargetSymbol);
         }
 
         if (type == 2) // diamond
@@ -622,7 +622,7 @@ public class ExperimentController : MonoBehaviour
 
                 }
             }
-            markerStream.Write("diamond + " + isTargetSymbol);
+            markerStream.Write("diamond_" + isTargetSymbol);
         }
 
         if (type == 3) // ISI
@@ -721,7 +721,7 @@ public class ExperimentController : MonoBehaviour
         }
         currentTrial.symbol = HUDIcon.name;
         currentTrial.stimulusType = stimType == 0 ? "Visual" : stimType == 1 ? "Audio" : "Visual + Audio";
-        if (currentTrial.symbol == "Human Speech") markerStream.Write("target appeared + " + currentTrial.stimulusType);
+        if (currentTrial.symbol == "Human Speech") markerStream.Write("targetAppeared_" + currentTrial.stimulusType);
     }
 
     public void ResolveEventAngle(GameObject obj)
