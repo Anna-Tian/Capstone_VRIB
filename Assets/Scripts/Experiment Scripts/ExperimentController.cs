@@ -61,7 +61,7 @@ public class ExperimentController : MonoBehaviour
     int[] randomUnexpArray = new int[10];
     int unexpsDone = 0;
     bool isBgAudioStart = false;
-    // public bool isQtnDone = false;
+    public bool isQtnDone = false;
 
     enum ExperimentState { Startup, SymbolTraining, Training, Experiment, Break, Complete, TrainingImage, Questionnaire };
     ExperimentState currentState = ExperimentState.Startup;
@@ -236,9 +236,9 @@ public class ExperimentController : MonoBehaviour
         }
         #endregion
         #region Questionnaire->Interim/EndScreen
-        if ((isControllerAClicked || Input.GetKeyDown(KeyCode.Tab)) && currentState == ExperimentState.Questionnaire)
+        if (isQtnDone && currentState == ExperimentState.Questionnaire)
         {
-            isControllerAClicked = false;
+            isQtnDone = false;
             inInterim = true;
             currentState = ExperimentState.Break;
             menuOpen = true;
@@ -862,7 +862,6 @@ public class ExperimentController : MonoBehaviour
         public List<ExperimentTrial> expTrials;
         public List<PairingTraining.SymbolTrainingTrial> symbTrainingTrials;
         public List<Experiment> expFlags;
-        public List<AwarenessQuestionnaire.Questionnaire> expQuestions;
         public List<EyeTrackingLogger.EyeGazeData> eyeGazeData;
         public List<LogOnGaze.ObjectGaze> objectGaze;
 
@@ -871,7 +870,6 @@ public class ExperimentController : MonoBehaviour
             expTrials = new List<ExperimentTrial>();
             symbTrainingTrials = new List<PairingTraining.SymbolTrainingTrial>();
             expFlags = new List<Experiment>();
-            expQuestions = new List<AwarenessQuestionnaire.Questionnaire>();
             eyeGazeData = new List<EyeTrackingLogger.EyeGazeData>();
             objectGaze = new List<LogOnGaze.ObjectGaze>();
         }
@@ -888,7 +886,6 @@ public class ExperimentController : MonoBehaviour
             if (trial is ExperimentTrial) expTrials.Add((ExperimentTrial)trial);
             else if (trial is PairingTraining.SymbolTrainingTrial) symbTrainingTrials.Add((PairingTraining.SymbolTrainingTrial)trial);
             else if (trial is Experiment) expFlags.Add((Experiment)trial);//This is for start/end Flags
-            else if (trial is AwarenessQuestionnaire.Questionnaire) expQuestions.Add((AwarenessQuestionnaire.Questionnaire)trial);
             else if (trial is EyeTrackingLogger.EyeGazeData) eyeGazeData.Add((EyeTrackingLogger.EyeGazeData)trial);
             else if (trial is LogOnGaze.ObjectGaze) objectGaze.Add((LogOnGaze.ObjectGaze)trial);
             writeflag = true;
