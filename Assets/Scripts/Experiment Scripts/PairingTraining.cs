@@ -93,8 +93,6 @@ public class PairingTraining : MonoBehaviour
         private bool logged = false;
         public void LogToFile(string fileName)
         {
-            //  string thisJson = JsonUtility.ToJson(this);
-            //  System.IO.File.AppendAllText(fileName, thisJson + "\n");
             if (!logged) ExperimentController.logWrapper.AddToLog(this);
             logged = true;
         }

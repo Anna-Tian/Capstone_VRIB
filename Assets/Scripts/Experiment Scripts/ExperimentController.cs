@@ -13,7 +13,6 @@ using Assets.LSL4Unity.Scripts;
 using Valve.VR;
 using Valve.VR.Extras;
 
-// [ExecuteInEditMode]
 public class ExperimentController : MonoBehaviour
 {
     public const bool DEBUG = false;
@@ -30,8 +29,6 @@ public class ExperimentController : MonoBehaviour
     public Material materialWindowLight;
     public Material materialWindow;
     private GameObject[,] squareGrid = new GameObject[20, 20];
-
-    // TODO: remove public variable as much as possible
 
     public GameObject North;
     public GameObject East;
@@ -76,12 +73,10 @@ public class ExperimentController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Confined;
 
         LogFile = Application.persistentDataPath + "/Experiment-" + System.DateTime.Now.ToShortDateString().Replace('/', '-') + "-" + System.DateTime.Now.ToShortTimeString().Replace(':', '-') + ".json";
-        //GUIUtility.systemCopyBuffer = "Test";
 
         menuScreen = transform.Find("ExperimentObjects").Find("Menu Screen").gameObject;
         menuScreen.SetActive(true);
 
-        // Camera.main.GetComponent<CameraController>().enabled = false;
         lastTime = Time.time;
         randomUnexpArray = GenerateRandomArray(10, randomUnexpArray);
         InitGrid();
@@ -100,7 +95,6 @@ public class ExperimentController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             Application.Quit();
-            // logWrapper.LogToFile(LogFile);
         }
 
         #region Close Menu
@@ -125,7 +119,6 @@ public class ExperimentController : MonoBehaviour
 
             if (currentState == ExperimentState.SymbolTraining && !menuOpen)
             {
-                // Camera.main.GetComponent<CameraController>().enabled = true;
                 transform.Find("ExperimentObjects").Find("Pairing Screen").gameObject.SetActive(true);
             }
 
@@ -173,7 +166,6 @@ public class ExperimentController : MonoBehaviour
             currentTrial = new ExperimentTrial(Time.time, 0f, "", "", ""); // reset to stop noticeStimulus from firing
             currentTrial.endTime = Time.time;
             currentTrial.startTime = Time.time + stimDelay;
-            //Camera.main.transform.localRotation = Quaternion.identity;
         }
         #endregion
         #region Symbol Training->Training Menu
@@ -233,10 +225,8 @@ public class ExperimentController : MonoBehaviour
 
             inInterim = false;
             EventRunning = true;
-            //currentTrial.endtime = Time.time;
             currentTrial = new ExperimentTrial(Time.time, 0f, "", "", "");
             currentTrial.startTime = Time.time + stimDelay;
-            //currentTrial.endtime = Time.time;
             currentExp = new Experiment(Time.time);
             currentExp.LogToFile(LogFile);
 
@@ -315,10 +305,6 @@ public class ExperimentController : MonoBehaviour
                     currentExp.LogToFile(LogFile);
                     logWrapper.RemoveUselessTrial();
 
-                    // trialsCount = 600;
-                    // trialsArray = new int[600];
-                    // trialsArray = GenerateRandomArray(trialsCount, trialsArray);
-
                     transform.Find("ExperimentObjects").Find("NoticeScreen").gameObject.SetActive(false);
                     crosshair.GetComponent<Image>().color = Color.blue;
 
@@ -383,22 +369,6 @@ public class ExperimentController : MonoBehaviour
             transform.Find("ExperimentObjects").Find("Pairing Screen").Find("Continue").gameObject.SetActive(true);
         }
     }
-    // private void Start()
-    // {
-    //     InitGrid();
-    // }
-    // private void Update()
-    // {
-    //     if (isTesting)
-    //     {
-    //         ChangeGrid(1);
-    //     }
-    //     if (isTestingDone)
-    //     {
-    //         // ChangeGrid(3);
-    //         InitGrid();
-    //     }
-    // }
     private void playStimulus()
     {
         if (lastTime + stimDelay < Time.time)
@@ -825,8 +795,6 @@ public class ExperimentController : MonoBehaviour
             if (!logged)
             {
                 logged = true;
-                // string thisJson = JsonUtility.ToJson(this);
-                // System.IO.File.AppendAllText(filename, thisJson + "\n");
                 logWrapper.AddToLog(this);
             }
         }
@@ -845,8 +813,6 @@ public class ExperimentController : MonoBehaviour
         }
         public void LogToFile(string filename)
         {
-            //string thisJson = JsonUtility.ToJson(this);
-            //System.IO.File.AppendAllText(filename, thisJson + "\n");
             if (!logged) logWrapper.AddToLog(this);
             logged = true;
         }

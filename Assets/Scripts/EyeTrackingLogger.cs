@@ -70,8 +70,6 @@ public class EyeTrackingLogger : MonoBehaviour
     private void AcquireEyeTrackingData()
     {
         timeCounter += Time.deltaTime;
-        // EyeTrackingData eyeTrackingData = new EyeTrackingData();
-        // EyeTrackingGazeRay gazeRay = new EyeTrackingGazeRay();
         TobiiXR_EyeTrackingData eyeTrackingData = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.World);
 
         if (timeCounter >= time_frequency)
@@ -82,37 +80,18 @@ public class EyeTrackingLogger : MonoBehaviour
             {
                 gaze_location = eyeTrackingData.GazeRay.Origin,
                 gaze_direction = eyeTrackingData.GazeRay.Direction,
-                //left_blink = eyeTrackingData.leftEyeOpenness,
-                //right_blink = eyeTrackingData.rightEyeOpenness,
                 isLeftEyeBlinking = eyeTrackingData.IsLeftEyeBlinking,
                 isRightEyeBlinking = eyeTrackingData.IsRightEyeBlinking,
                 timestamp = eyeTrackingData.Timestamp,
                 time = Time.time
             };
-            // Debug.Log(string.Format("AcquireEyeTrackingData - gazeData: {0}", gazeData.gaze_location));
-
-            // if (eyeTrackingData.leftEyeOpenness == 0) ExperimentController.markerStream.Write("LEFT_BLINK");
-            // if (eyeTrackingData.rightEyeOpenness == 0) ExperimentController.markerStream.Write("RIGHT_BLINK");
-
-            // var eyeData = new EyeData();
-
-            // var error = SRanipal_Eye_API.GetEyeData(ref eyeData);
-
-            // if (error == ViveSR.Error.WORK)
-            // {
-            //   gazeData.pupil_dilatation_left = eyeData.verbose_data.left.pupil_diameter_mm;
-            //   gazeData.pupil_dilatation_right = eyeData.verbose_data.right.pupil_diameter_mm;
-            // }
 
             if (TobiiXR.FocusedObjects.Count > 0)
             {
-                // Do something with the focused game object
                 gazeData.objName = TobiiXR.FocusedObjects[0].GameObject.transform.parent.name + "_" + TobiiXR.FocusedObjects[0].GameObject.name;
             }
 
-            // Logger.log.eyeGazeData.Add(gazeData);
             gazeData.LogToFile(LogFile);
-            //dataManager.AddGazeData(gazeData);
 
         }
     }
@@ -122,8 +101,6 @@ public class EyeTrackingLogger : MonoBehaviour
     {
         public Vector3 gaze_location;
         public Vector3 gaze_direction;
-        //public float left_blink;
-        //public float right_blink;
         public float timestamp;
         public float time;
         public bool isLeftEyeBlinking;
@@ -133,8 +110,6 @@ public class EyeTrackingLogger : MonoBehaviour
 
         public void LogToFile(string fileName)
         {
-            //  string thisJson = JsonUtility.ToJson(this);
-            //  System.IO.File.AppendAllText(fileName, thisJson + "\n");
             if (!logged) ExperimentController.logWrapper.AddToLog(this);
             logged = true;
         }

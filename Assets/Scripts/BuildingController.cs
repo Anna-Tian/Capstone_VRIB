@@ -126,22 +126,6 @@ public class BuildingController : MonoBehaviour
                 }
             }
         }
-        //if(listWindows.Count > 0)
-        //{
-        //    listWindows.Sort(delegate (GameObject a, GameObject b) {
-        //        return a.name.CompareTo(b.name);
-        //    });
-
-        //}
-
-
-        //    for (int row = 2; row < 22; row++)
-        //{
-        //    for (int col = 0; col < 20; col++)
-        //    {
-        //        windowGrid[row, col].GetComponent<MeshRenderer>().material = windowLightMaterial;
-        //    }
-        //}
 
     }
 

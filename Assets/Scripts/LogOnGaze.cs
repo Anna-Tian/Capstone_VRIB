@@ -60,7 +60,6 @@ public class LogOnGaze : MonoBehaviour, IGazeFocusable
             }
             else currentGaze.objName = this.gameObject.transform.parent.name + "_" + this.gameObject.name;
             currentGaze.endTime = Time.time;
-            // Logger.log.AddToLog(currentGaze);
             currentGaze.LogToFile(LogFile);
             currentGaze = new ObjectGaze();
 
