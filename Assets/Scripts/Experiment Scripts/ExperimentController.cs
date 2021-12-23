@@ -81,7 +81,7 @@ public class ExperimentController : MonoBehaviour
         menuScreen = transform.Find("ExperimentObjects").Find("Menu Screen").gameObject;
         menuScreen.SetActive(true);
 
-        Camera.main.GetComponent<CameraController>().enabled = false;
+        // Camera.main.GetComponent<CameraController>().enabled = false;
         lastTime = Time.time;
         randomUnexpArray = GenerateRandomArray(10, randomUnexpArray);
         InitGrid();
@@ -125,7 +125,7 @@ public class ExperimentController : MonoBehaviour
 
             if (currentState == ExperimentState.SymbolTraining && !menuOpen)
             {
-                Camera.main.GetComponent<CameraController>().enabled = true;
+                // Camera.main.GetComponent<CameraController>().enabled = true;
                 transform.Find("ExperimentObjects").Find("Pairing Screen").gameObject.SetActive(true);
             }
 
@@ -149,6 +149,24 @@ public class ExperimentController : MonoBehaviour
                     currentState = ExperimentState.Training;
                     isControllerAClicked = true;
                 }
+            }
+
+            if (currentState == ExperimentState.Break)
+            {
+                trialsDone = 0;
+                EventRunning = true;
+                experimentRunning = true;
+                inInterim = false;
+                currentState = ExperimentState.Experiment;
+                logWrapper.RemoveUselessTrial();
+
+                trialsCount = 600;
+                trialsArray = new int[600];
+                trialsArray = GenerateRandomArray(trialsCount, trialsArray);
+                crosshair.GetComponent<Image>().color = Color.red;
+                currentExp = new Experiment(Time.time);
+                currentExp.LogToFile(LogFile);
+                markerStream.Write("experiment " + phaseNum + " start");
             }
 
             stimDelay = Random.Range(0.6f, 0.8f);
@@ -194,6 +212,7 @@ public class ExperimentController : MonoBehaviour
             currentTrial.endTime = Time.time;
             currentTrial.startTime = Time.time + stimDelay;
             crosshair.GetComponent<Image>().color = Color.red;
+            markerStream.Write("training start");
         }
         #endregion
         #region Training->Experiment
@@ -209,6 +228,7 @@ public class ExperimentController : MonoBehaviour
                 UIDesigns.transform.GetChild(type).gameObject.GetComponent<AudioSource>().Stop();
             }
             trialsDone = 0;
+            InitGrid();
             logWrapper.RemoveUselessTrial();
 
             inInterim = false;
@@ -219,7 +239,6 @@ public class ExperimentController : MonoBehaviour
             //currentTrial.endtime = Time.time;
             currentExp = new Experiment(Time.time);
             currentExp.LogToFile(LogFile);
-            // markerStream.Write("training end ");
 
             trialsCount = 600;
             trialsArray = new int[600];
@@ -233,6 +252,7 @@ public class ExperimentController : MonoBehaviour
             crosshair.GetComponent<Image>().color = Color.red;
             experimentRunning = true;
             currentState = ExperimentState.Experiment;
+            markerStream.Write("experiment " + phaseNum + " start");
         }
         #endregion
         #region Questionnaire->Interim/EndScreen
@@ -248,7 +268,6 @@ public class ExperimentController : MonoBehaviour
             if (phaseNum < 2)
             {
                 phaseNum++;
-                // markerStream.Write("experiment " + phaseNum + " end");
             }
             else
             {
@@ -259,32 +278,7 @@ public class ExperimentController : MonoBehaviour
                 GUIUtility.systemCopyBuffer = System.IO.File.ReadAllText(LogFile);
                 transform.Find("ExperimentObjects").Find("End Screen").gameObject.SetActive(true);
                 EnableNavSystem(false);
-                // markerStream.Write("experiment " + phaseNum + " end");
             }
-        }
-        #endregion
-        #region Interim ->Next Phase
-        if ((isControllerAClicked || Input.GetKeyDown(KeyCode.Tab)) && !experimentRunning && inInterim && currentState == ExperimentState.Break)
-        {
-            isControllerAClicked = false;
-            trialsDone = 0;
-            EventRunning = true;
-            experimentRunning = true;
-            inInterim = false;
-            currentState = ExperimentState.Experiment;
-            logWrapper.RemoveUselessTrial();
-
-            trialsCount = 600;
-            trialsArray = new int[600];
-            trialsArray = GenerateRandomArray(trialsCount, trialsArray);
-            stimDelay = Random.Range(0.6f, 0.8f);
-
-            currentTrial = new ExperimentTrial(Time.time, 0f, "", "", ""); // reset to stop noticeStimulus from firing
-            currentTrial.endTime = Time.time;
-            currentTrial.startTime = Time.time + stimDelay;
-            crosshair.GetComponent<Image>().color = Color.red;
-            currentExp = new Experiment(Time.time);
-            currentExp.LogToFile(LogFile);
         }
         #endregion
 
@@ -332,6 +326,7 @@ public class ExperimentController : MonoBehaviour
                     menuScreen.SetActive(true);
                     menuScreen.transform.Find("Menu Slides").Find("Questionnaire").gameObject.SetActive(true);
                     triggerActionSetInStimulus.Deactivate(handType);
+                    markerStream.Write("experiment " + phaseNum + " end");
                 }
 
                 if (isControllerTriggerClicked || Input.GetKeyDown(KeyCode.Space))
@@ -369,6 +364,7 @@ public class ExperimentController : MonoBehaviour
                     isBgAudioStart = false;
                     transform.Find("ExperimentObjects").Find("NoticeScreen").gameObject.SetActive(false);
                     triggerActionSetInStimulus.Deactivate(handType);
+                    markerStream.Write("training end");
                 }
 
                 if (isControllerTriggerClicked || Input.GetKeyDown(KeyCode.Space))

@@ -11,7 +11,7 @@ public class GazeLSLOutlet : MonoBehaviour
 
     public string StreamName = "Unity.TobiiGaze";
     public string StreamType = "Gaze";
-    public string StreamId = "TabiiGazeID-Unity1234";
+    public string StreamId = "PA7D20NGE6210046G";
 
     // Start is called before the first frame update
     void Start()

@@ -56,12 +56,12 @@ public class EyeTrackingLogger : MonoBehaviour
     // </summary>
     private void EyeBlinkingEvent()
     {
-        if (TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsLeftEyeBlinking)
+        if (TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.World).IsLeftEyeBlinking)
         {
             ExperimentController.markerStream.Write("LEFT_BLINK");
         }
 
-        if (TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsRightEyeBlinking)
+        if (TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.World).IsRightEyeBlinking)
         {
             ExperimentController.markerStream.Write("RIGHT_BLINK");
         }
@@ -72,19 +72,21 @@ public class EyeTrackingLogger : MonoBehaviour
         timeCounter += Time.deltaTime;
         // EyeTrackingData eyeTrackingData = new EyeTrackingData();
         // EyeTrackingGazeRay gazeRay = new EyeTrackingGazeRay();
+        TobiiXR_EyeTrackingData eyeTrackingData = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.World);
+
         if (timeCounter >= time_frequency)
         {
             timeCounter = 0.0f;
 
             var gazeData = new EyeGazeData
             {
-                gaze_location = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).GazeRay.Origin,
-                gaze_direction = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).GazeRay.Direction,
+                gaze_location = eyeTrackingData.GazeRay.Origin,
+                gaze_direction = eyeTrackingData.GazeRay.Direction,
                 //left_blink = eyeTrackingData.leftEyeOpenness,
                 //right_blink = eyeTrackingData.rightEyeOpenness,
-                isLeftEyeBlinking = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsLeftEyeBlinking,
-                isRightEyeBlinking = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).IsRightEyeBlinking,
-                timestamp = TobiiXR.GetEyeTrackingData(TobiiXR_TrackingSpace.Local).Timestamp,
+                isLeftEyeBlinking = eyeTrackingData.IsLeftEyeBlinking,
+                isRightEyeBlinking = eyeTrackingData.IsRightEyeBlinking,
+                timestamp = eyeTrackingData.Timestamp,
                 time = Time.time
             };
             // Debug.Log(string.Format("AcquireEyeTrackingData - gazeData: {0}", gazeData.gaze_location));

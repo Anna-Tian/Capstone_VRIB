@@ -10,7 +10,7 @@ public class PoseLSLOutlet : MonoBehaviour
 
     public string StreamName = "Unity.PicoVRHeadPose";
     public string StreamType = "MoCap";
-    public string StreamId = "VRHeadPose-MoCap1234";
+    public string StreamId = "PA7D20NGE6210046G";
 
     // Start is called before the first frame update
     void Start()
