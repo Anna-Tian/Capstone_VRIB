@@ -8,4 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/web.unity
     guid: 70a42d57188a74478b96b1c3103ec335
-  m_configObjects: {}
+  m_configObjects:
+    Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 49cfceeac080c4be29222a5949ec1130, type: 2}
+    Unity.XR.OpenVR.Settings: {fileID: 11400000, guid: b3eb809c0c7cffd4e8a30833af1296d4, type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: b8bd58e48d27144e0aff8b9d332a4d56, type: 2}

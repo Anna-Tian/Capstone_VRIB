@@ -8,10 +8,23 @@ using UnityEngine.UI;
 using SickscoreGames.HUDNavigationSystem;
 using System.Linq;
 using Pvr_UnitySDKAPI;
+using LSL;
+using Assets.LSL4Unity.Scripts;
+using Valve.VR;
+using Valve.VR.Extras;
 
 public class ExperimentController : MonoBehaviour
 {
     public const bool DEBUG = false;
+    public bool isTesting;
+    public bool isTestingDone;
+
+    public SteamVR_Input_Sources handType;
+    public SteamVR_Action_Boolean controller_A;
+    bool isControllerAClicked;
+    public SteamVR_Action_Boolean controller_Trigger;
+    bool isControllerTriggerClicked;
+    public SteamVR_ActionSet triggerActionSetInStimulus;
 
     public Material materialWindowLight;
     public Material materialWindow;
@@ -51,6 +64,8 @@ public class ExperimentController : MonoBehaviour
     ExperimentState currentState = ExperimentState.Startup;
 
     static public LogWrapper logWrapper = new LogWrapper();
+    static public LSLMarkerStream markerStream;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -58,21 +73,18 @@ public class ExperimentController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Confined;
 
         LogFile = Application.persistentDataPath + "/Experiment-" + System.DateTime.Now.ToShortDateString().Replace('/', '-') + "-" + System.DateTime.Now.ToShortTimeString().Replace(':', '-') + ".json";
-        //GUIUtility.systemCopyBuffer = "Test";
 
         menuScreen = transform.Find("ExperimentObjects").Find("Menu Screen").gameObject;
         menuScreen.SetActive(true);
 
-        Camera.main.GetComponent<CameraController>().enabled = false;
         lastTime = Time.time;
         randomUnexpArray = GenerateRandomArray(10, randomUnexpArray);
         InitGrid();
-    }
-
-    private void OnDisable()
-    {
-        logWrapper.LogToFile(Logger.logFileName.TrimEnd(".json".ToCharArray()) + "--" + ".json");
-        // Logger.log.LogToFile("Test");
+        controller_A.AddOnStateDownListener(ControllerAMethod, handType);
+        controller_Trigger.AddOnStateDownListener(ControllerTriggerMethod, handType);
+        markerStream = FindObjectOfType<LSLMarkerStream>();
+        markerStream.gameObject.SetActive(false);
+        markerStream.gameObject.SetActive(true);
     }
 
     // Update is called once per frame
@@ -80,15 +92,15 @@ public class ExperimentController : MonoBehaviour
     void Update()
     {
 
-        if (Input.GetKeyDown(KeyCode.Escape) || Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.B))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             Application.Quit();
-            // logWrapper.LogToFile(LogFile);
         }
 
         #region Close Menu
-        if ((Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && menuOpen)
+        if ((isControllerAClicked || Input.GetKeyDown(KeyCode.Tab)) && menuOpen)
         {
+            isControllerAClicked = false;
             menuScreen.SetActive(false);
             menuOpen = false;
 
@@ -107,7 +119,6 @@ public class ExperimentController : MonoBehaviour
 
             if (currentState == ExperimentState.SymbolTraining && !menuOpen)
             {
-                Camera.main.GetComponent<CameraController>().enabled = true;
                 transform.Find("ExperimentObjects").Find("Pairing Screen").gameObject.SetActive(true);
             }
 
@@ -118,9 +129,10 @@ public class ExperimentController : MonoBehaviour
                     menuScreen.SetActive(true);
                     menuOpen = true;
                     menuScreen.transform.Find("Menu Slides").Find("Training Images").gameObject.SetActive(true);
-                    menuScreen.transform.Find("Menu Slides").Find("Training Images").GetChild(++instructionMenuNum).gameObject.SetActive(true);
-                    menuScreen.transform.Find("Menu Slides").Find("Training Images").Find("Title").GetComponent<Text>().text = string.Format("Task Instruction ({0}/3)", instructionMenuNum);
+                    menuScreen.transform.Find("Menu Slides").Find("Training Images").GetChild(instructionMenuNum + 1).gameObject.SetActive(true);
+                    menuScreen.transform.Find("Menu Slides").Find("Training Images").Find("Title").GetComponent<Text>().text = string.Format("Task Instruction ({0}/3)", instructionMenuNum + 1);
                     if (instructionMenuNum == 3) menuScreen.transform.Find("Menu Slides").Find("Training Images").Find("NextInstruction").GetComponent<Text>().text = "Press \"A\" from controller to continue to start Training";
+                    instructionMenuNum++;
                 }
                 if (instructionMenuNum == 4)
                 {
@@ -128,20 +140,38 @@ public class ExperimentController : MonoBehaviour
                     menuOpen = false;
                     menuScreen.transform.Find("Menu Slides").Find("Training Images").gameObject.SetActive(false);
                     currentState = ExperimentState.Training;
+                    isControllerAClicked = true;
                 }
+            }
+
+            if (currentState == ExperimentState.Break)
+            {
+                trialsDone = 0;
+                EventRunning = true;
+                experimentRunning = true;
+                inInterim = false;
+                currentState = ExperimentState.Experiment;
+                logWrapper.RemoveUselessTrial();
+
+                trialsCount = 600;
+                trialsArray = new int[600];
+                trialsArray = GenerateRandomArray(trialsCount, trialsArray);
+                crosshair.GetComponent<Image>().color = Color.red;
+                currentExp = new Experiment(Time.time);
+                currentExp.LogToFile(LogFile);
+                markerStream.Write("experiment " + phaseNum + " start");
             }
 
             stimDelay = Random.Range(0.6f, 0.8f);
             currentTrial = new ExperimentTrial(Time.time, 0f, "", "", ""); // reset to stop noticeStimulus from firing
             currentTrial.endTime = Time.time;
             currentTrial.startTime = Time.time + stimDelay;
-            //Camera.main.transform.localRotation = Quaternion.identity;
         }
         #endregion
-
         #region Symbol Training->Training Menu
-        if ((Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && currentState == ExperimentState.SymbolTraining && !menuOpen && trialsDone >= 15)
+        if ((isControllerAClicked || Input.GetKeyDown(KeyCode.Tab)) && currentState == ExperimentState.SymbolTraining && !menuOpen && trialsDone >= 15)
         {
+            isControllerAClicked = false;
             trialsDone = 0;
             transform.Find("ExperimentObjects").Find("Pairing Screen").gameObject.SetActive(false);
 
@@ -153,8 +183,9 @@ public class ExperimentController : MonoBehaviour
         }
         #endregion
         #region Training Image->Training
-        if ((Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && currentState == ExperimentState.Training && !menuOpen)
+        if ((isControllerAClicked || Input.GetKeyDown(KeyCode.Tab)) && currentState == ExperimentState.Training && !menuOpen)
         {
+            isControllerAClicked = false;
             EventRunning = true;
             inTraining = true;
             currentState = ExperimentState.Training;
@@ -173,6 +204,7 @@ public class ExperimentController : MonoBehaviour
             currentTrial.endTime = Time.time;
             currentTrial.startTime = Time.time + stimDelay;
             crosshair.GetComponent<Image>().color = Color.red;
+            markerStream.Write("training start");
         }
         #endregion
         #region Training->Experiment
@@ -188,14 +220,13 @@ public class ExperimentController : MonoBehaviour
                 UIDesigns.transform.GetChild(type).gameObject.GetComponent<AudioSource>().Stop();
             }
             trialsDone = 0;
+            InitGrid();
             logWrapper.RemoveUselessTrial();
 
             inInterim = false;
             EventRunning = true;
-            //currentTrial.endtime = Time.time;
             currentTrial = new ExperimentTrial(Time.time, 0f, "", "", "");
             currentTrial.startTime = Time.time + stimDelay;
-            //currentTrial.endtime = Time.time;
             currentExp = new Experiment(Time.time);
             currentExp.LogToFile(LogFile);
 
@@ -211,10 +242,11 @@ public class ExperimentController : MonoBehaviour
             crosshair.GetComponent<Image>().color = Color.red;
             experimentRunning = true;
             currentState = ExperimentState.Experiment;
+            markerStream.Write("experiment " + phaseNum + " start");
         }
         #endregion
         #region Questionnaire->Interim/EndScreen
-        if (currentState == ExperimentState.Questionnaire && isQtnDone)
+        if (isQtnDone && currentState == ExperimentState.Questionnaire)
         {
             isQtnDone = false;
             inInterim = true;
@@ -223,7 +255,10 @@ public class ExperimentController : MonoBehaviour
             menuScreen.transform.Find("Menu Slides").Find("Questionnaire").gameObject.SetActive(false);
             menuScreen.transform.Find("Menu Slides").Find("Interim").gameObject.SetActive(true);
 
-            if (phaseNum < 2) phaseNum++;
+            if (phaseNum < 2)
+            {
+                phaseNum++;
+            }
             else
             {
                 inInterim = false;
@@ -236,36 +271,13 @@ public class ExperimentController : MonoBehaviour
             }
         }
         #endregion
-        #region Interim ->Next Phase
-        if ((Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && !experimentRunning && inInterim && currentState == ExperimentState.Break)
-        {
-            trialsDone = 0;
-            EventRunning = true;
-            experimentRunning = true;
-            inInterim = false;
-            currentState = ExperimentState.Experiment;
-            logWrapper.RemoveUselessTrial();
-
-            trialsCount = 600;
-            trialsArray = new int[600];
-            trialsArray = GenerateRandomArray(trialsCount, trialsArray);
-            stimDelay = Random.Range(0.6f, 0.8f);
-
-            currentTrial = new ExperimentTrial(Time.time, 0f, "", "", ""); // reset to stop noticeStimulus from firing
-            currentTrial.endTime = Time.time;
-            currentTrial.startTime = Time.time + stimDelay;
-            crosshair.GetComponent<Image>().color = Color.red;
-            currentExp = new Experiment(Time.time);
-            currentExp.LogToFile(LogFile);
-
-        }
-        #endregion
 
         #region Experiment Update
         if (experimentRunning && !menuOpen)
         {
             inTraining = false;
             transform.Find("ExperimentObjects").Find("NoticeScreen").gameObject.SetActive(true);
+            triggerActionSetInStimulus.Activate(handType);
             if (EventRunning)
             {
                 currentTrial.tag = phaseNum == 1 ? "experiment 1" : "experiment 2";
@@ -277,7 +289,7 @@ public class ExperimentController : MonoBehaviour
                 }
 
                 // will result incorrect data for last trial in case (trialsDone == trialsCount)
-                if (trialsDone == trialsCount + 1 || Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.APP) || Input.GetKeyDown(KeyCode.S))
+                if (trialsDone == trialsCount + 1 || Input.GetKeyDown(KeyCode.S))
                 {
                     EventRunning = false;
                     trialsDone = trialsCount;
@@ -293,20 +305,19 @@ public class ExperimentController : MonoBehaviour
                     currentExp.LogToFile(LogFile);
                     logWrapper.RemoveUselessTrial();
 
-                    // trialsCount = 600;
-                    // trialsArray = new int[600];
-                    // trialsArray = GenerateRandomArray(trialsCount, trialsArray);
-
                     transform.Find("ExperimentObjects").Find("NoticeScreen").gameObject.SetActive(false);
                     crosshair.GetComponent<Image>().color = Color.blue;
 
                     currentState = ExperimentState.Questionnaire;
                     menuScreen.SetActive(true);
                     menuScreen.transform.Find("Menu Slides").Find("Questionnaire").gameObject.SetActive(true);
+                    triggerActionSetInStimulus.Deactivate(handType);
+                    markerStream.Write("experiment " + phaseNum + " end");
                 }
 
-                if (Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.TRIGGER) || Input.GetKeyDown(KeyCode.Space))
+                if (isControllerTriggerClicked || Input.GetKeyDown(KeyCode.Space))
                 {
+                    isControllerTriggerClicked = false;
                     NoticeStimulus(Time.time);
                 }
 
@@ -316,6 +327,7 @@ public class ExperimentController : MonoBehaviour
         #region Training Update
         if (inTraining && !menuOpen)
         {
+            triggerActionSetInStimulus.Activate(handType);
             if (EventRunning)
             {
                 currentTrial.tag = "training";
@@ -328,7 +340,7 @@ public class ExperimentController : MonoBehaviour
 
                 // will result incorrect data for last trial in case (trialsDone == trialsCount)
                 // skip for debugging
-                if (trialsDone == trialsCount + 1 || Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.APP) || Input.GetKeyDown(KeyCode.S))
+                if (trialsDone == trialsCount + 1 || Input.GetKeyDown(KeyCode.S))
                 {
                     inTraining = false;
                     EventRunning = false;
@@ -337,10 +349,13 @@ public class ExperimentController : MonoBehaviour
                     EnableNavSystem(false);
                     isBgAudioStart = false;
                     transform.Find("ExperimentObjects").Find("NoticeScreen").gameObject.SetActive(false);
+                    triggerActionSetInStimulus.Deactivate(handType);
+                    markerStream.Write("training end");
                 }
 
-                if (Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.TRIGGER) || Input.GetKeyDown(KeyCode.Space))
+                if (isControllerTriggerClicked || Input.GetKeyDown(KeyCode.Space))
                 {
+                    isControllerTriggerClicked = false;
                     NoticeStimulus(Time.time);
                 }
             }
@@ -354,7 +369,6 @@ public class ExperimentController : MonoBehaviour
             transform.Find("ExperimentObjects").Find("Pairing Screen").Find("Continue").gameObject.SetActive(true);
         }
     }
-
     private void playStimulus()
     {
         if (lastTime + stimDelay < Time.time)
@@ -380,17 +394,21 @@ public class ExperimentController : MonoBehaviour
 
                 currentTrial.startTime = Time.time;
                 trialsDone++;
-
                 if (unexpsDone == 10)
                 {
                     randomUnexpArray = GenerateRandomArray(10, randomUnexpArray);
                     unexpsDone = 0;
                 }
-                if (randomUnexpArray[unexpsDone] < 5) ChangeGrid(0);
-                else if (randomUnexpArray[unexpsDone] >= 5 && randomUnexpArray[unexpsDone] < 9) ChangeGrid(1);
-                else
+
+                if (inTraining) ChangeGrid(0);
+                else if (experimentRunning)
                 {
-                    ChangeGrid(2);
+                    if (randomUnexpArray[unexpsDone] < 5) ChangeGrid(0);
+                    else if (randomUnexpArray[unexpsDone] >= 5 && randomUnexpArray[unexpsDone] < 9) ChangeGrid(1);
+                    else
+                    {
+                        ChangeGrid(2);
+                    }
                 }
                 unexpsDone++;
             }
@@ -415,14 +433,13 @@ public class ExperimentController : MonoBehaviour
             lastTime = Time.time;
             currentTrial.targetEndTime = Time.time;
             currentTrial.LogToFile(LogFile);
-
         }
 
     }
 
     private void ChangeGrid(int type)
     {
-        // currentTrial.gridType = "random";
+        // set random background
         InitGrid();
         switch (Random.Range(1, 5))
         {
@@ -471,36 +488,52 @@ public class ExperimentController : MonoBehaviour
 
         }
 
-        if (type == 0) currentTrial.gridType = "random";
+        string isTargetSymbol = (currentTrial.symbol == "Human Speech") ? "targetSymbol" : "nonTargetSysmol";
+        if (type == 0) // random
+        {
+            currentTrial.gridType = "random";
+
+            markerStream.Write("random_" + isTargetSymbol);
+        }
+
         if (type == 1) // square
         {
             currentTrial.gridType = "square";
+
             //outer square
-            for (int outer = 3; outer < 16; outer++)
+            for (int col = 3; col < 16; col++)
             {
-                squareGrid[2, outer].GetComponent<MeshRenderer>().material = materialWindow;
-                squareGrid[16, outer].GetComponent<MeshRenderer>().material = materialWindow;
-                squareGrid[outer, 3].GetComponent<MeshRenderer>().material = materialWindow;
-                squareGrid[outer, 15].GetComponent<MeshRenderer>().material = materialWindow;
+                squareGrid[2, col].GetComponent<MeshRenderer>().material = materialWindow;
+                squareGrid[17, col].GetComponent<MeshRenderer>().material = materialWindow;
+            }
+            for (int row = 2; row < 18; row++)
+            {
+                squareGrid[row, 3].GetComponent<MeshRenderer>().material = materialWindow;
+                squareGrid[row, 15].GetComponent<MeshRenderer>().material = materialWindow;
             }
             //square
-            for (int colRow = 4; colRow < 15; colRow++)
+            for (int col = 4; col < 15; col++)
             {
-                squareGrid[3, colRow].GetComponent<MeshRenderer>().material = materialWindowLight;
-                squareGrid[16, colRow].GetComponent<MeshRenderer>().material = materialWindowLight;
-                squareGrid[colRow, 4].GetComponent<MeshRenderer>().material = materialWindowLight;
-                squareGrid[colRow, 14].GetComponent<MeshRenderer>().material = materialWindowLight;
-                squareGrid[colRow + 1, 4].GetComponent<MeshRenderer>().material = materialWindowLight;
-                squareGrid[colRow + 1, 14].GetComponent<MeshRenderer>().material = materialWindowLight;
+                squareGrid[3, col].GetComponent<MeshRenderer>().material = materialWindowLight;
+                squareGrid[16, col].GetComponent<MeshRenderer>().material = materialWindowLight;
+            }
+            for (int row = 3; row < 17; row++)
+            {
+                squareGrid[row, 4].GetComponent<MeshRenderer>().material = materialWindowLight;
+                squareGrid[row, 14].GetComponent<MeshRenderer>().material = materialWindowLight;
             }
             //inner square
-            for (int inner = 5; inner < 14; inner++)
+            for (int col = 5; col < 14; col++)
             {
-                squareGrid[4, inner].GetComponent<MeshRenderer>().material = materialWindow;
-                squareGrid[14, inner].GetComponent<MeshRenderer>().material = materialWindow;
-                squareGrid[inner, 5].GetComponent<MeshRenderer>().material = materialWindow;
-                squareGrid[inner, 13].GetComponent<MeshRenderer>().material = materialWindow;
+                squareGrid[4, col].GetComponent<MeshRenderer>().material = materialWindow;
+                squareGrid[15, col].GetComponent<MeshRenderer>().material = materialWindow;
             }
+            for (int row = 4; row < 16; row++)
+            {
+                squareGrid[row, 5].GetComponent<MeshRenderer>().material = materialWindow;
+                squareGrid[row, 13].GetComponent<MeshRenderer>().material = materialWindow;
+            }
+            markerStream.Write("square_" + isTargetSymbol);
         }
 
         if (type == 2) // diamond
@@ -555,7 +588,13 @@ public class ExperimentController : MonoBehaviour
 
                 }
             }
+            markerStream.Write("diamond_" + isTargetSymbol);
         }
+
+        if (type == 3) // ISI
+        {
+        }
+
     }
 
     public int[] GenerateRandomArray(int count, int[] array)
@@ -646,10 +685,9 @@ public class ExperimentController : MonoBehaviour
             isAudioTrialStart = true;
             EnableNavSystem(false);
         }
-
         currentTrial.symbol = HUDIcon.name;
         currentTrial.stimulusType = stimType == 0 ? "Visual" : stimType == 1 ? "Audio" : "Visual + Audio";
-
+        if (currentTrial.symbol == "Human Speech") markerStream.Write("targetAppeared_" + currentTrial.stimulusType);
     }
 
     public void ResolveEventAngle(GameObject obj)
@@ -682,6 +720,24 @@ public class ExperimentController : MonoBehaviour
     {
         currentTrial.noticeTime = noticetime;
         crosshair.GetComponent<Image>().color = Color.green;
+        markerStream.Write("noticed");
+    }
+
+
+    private void ControllerAMethod(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
+    {
+        isControllerAClicked = true;
+    }
+
+    private void ControllerTriggerMethod(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
+    {
+        if (experimentRunning || inTraining) isControllerTriggerClicked = true;
+        else
+        {
+            Debug.Log(string.Format("PointerClick - {0}", this.gameObject.name));
+
+        }
+
     }
 
     #region WebGL Stuff
@@ -710,7 +766,7 @@ public class ExperimentController : MonoBehaviour
     }
     #endregion
 
-    #region Experiemnt classes
+    #region Experiment classes
     [System.Serializable]
     public class ExperimentTrial
     {
@@ -739,8 +795,6 @@ public class ExperimentController : MonoBehaviour
             if (!logged)
             {
                 logged = true;
-                // string thisJson = JsonUtility.ToJson(this);
-                // System.IO.File.AppendAllText(filename, thisJson + "\n");
                 logWrapper.AddToLog(this);
             }
         }
@@ -759,8 +813,6 @@ public class ExperimentController : MonoBehaviour
         }
         public void LogToFile(string filename)
         {
-            //string thisJson = JsonUtility.ToJson(this);
-            //System.IO.File.AppendAllText(filename, thisJson + "\n");
             if (!logged) logWrapper.AddToLog(this);
             logged = true;
         }
@@ -772,16 +824,16 @@ public class ExperimentController : MonoBehaviour
         public List<ExperimentTrial> expTrials;
         public List<PairingTraining.SymbolTrainingTrial> symbTrainingTrials;
         public List<Experiment> expFlags;
-        public List<AwarenessQuestionnaire.Questionnaire> expQuestions;
         public List<EyeTrackingLogger.EyeGazeData> eyeGazeData;
+        public List<LogOnGaze.ObjectGaze> objectGaze;
 
         public LogWrapper()
         {
             expTrials = new List<ExperimentTrial>();
             symbTrainingTrials = new List<PairingTraining.SymbolTrainingTrial>();
             expFlags = new List<Experiment>();
-            expQuestions = new List<AwarenessQuestionnaire.Questionnaire>();
             eyeGazeData = new List<EyeTrackingLogger.EyeGazeData>();
+            objectGaze = new List<LogOnGaze.ObjectGaze>();
         }
         private bool logged = false;
         private bool writeflag = false;
@@ -796,8 +848,8 @@ public class ExperimentController : MonoBehaviour
             if (trial is ExperimentTrial) expTrials.Add((ExperimentTrial)trial);
             else if (trial is PairingTraining.SymbolTrainingTrial) symbTrainingTrials.Add((PairingTraining.SymbolTrainingTrial)trial);
             else if (trial is Experiment) expFlags.Add((Experiment)trial);//This is for start/end Flags
-            else if (trial is AwarenessQuestionnaire.Questionnaire) expQuestions.Add((AwarenessQuestionnaire.Questionnaire)trial);
             else if (trial is EyeTrackingLogger.EyeGazeData) eyeGazeData.Add((EyeTrackingLogger.EyeGazeData)trial);
+            else if (trial is LogOnGaze.ObjectGaze) objectGaze.Add((LogOnGaze.ObjectGaze)trial);
             writeflag = true;
         }
 
@@ -817,5 +869,5 @@ public class ExperimentController : MonoBehaviour
 /**
 Input.GetKeyDown(KeyCode.S) => Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.APP) || Input.GetKeyDown(KeyCode.S)
 Input.GetKeyDown(KeyCode.Tab) => Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)
-Input.GetKeyDown(KeyCode.Space) => Pvr_UnitySDKAPI.Controller.UPvr_GetKeyDown(1, Pvr_KeyCode.TRIGGER) || Input.GetKeyDown(KeyCode.Space)
+Input.GetKeyDown(KeyCode.Space) => isAAA  || Input.GetKeyDown(KeyCode.Space)
 **/

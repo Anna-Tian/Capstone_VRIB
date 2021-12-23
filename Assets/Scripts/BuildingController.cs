@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-//[ExecuteInEditMode]
+// [ExecuteInEditMode]
 public class BuildingController : MonoBehaviour
 {
     public bool isChangePos;
@@ -11,6 +11,7 @@ public class BuildingController : MonoBehaviour
     public GameObject half;
     public GameObject singleA;
     public GameObject singleB;
+    public bool isTesting;
 
     private GameObject[,] windowGrid = new GameObject[24, 21];
 
@@ -20,11 +21,60 @@ public class BuildingController : MonoBehaviour
     {
         //GenerateGrid();
         //ChangeTag();
-
     }
+
     void Update()
     {
         //ChangePosition();
+        // TestCreateParentObject();
+        // TestDestroyObject();
+        // ChangeBuildingName();
+    }
+
+    private void ChangeBuildingName()
+    {
+        if (isTesting)
+        {
+            GameObject buildingParent = GameObject.Find("IB_Building");
+            int children = buildingParent.transform.childCount;
+
+            for (int col = 0, i = 0; col < 4; col++)
+            {
+                for (int row = 0; row < 6; row++, i++)
+                {
+                    buildingParent.transform.GetChild(i).name = string.Format("building_{0}_{1}", row.ToString("00"), col.ToString("00"));
+                }
+            }
+        }
+    }
+
+    private void TestDestroyObject()
+    {
+        if (isTesting)
+        {
+            for (int i = 0; i < 6; i++)
+            {
+                GameObject obj = GameObject.Find(string.Format("windowHalf_{0}", i.ToString("00")));
+                obj.transform.parent = windows.transform;
+            }
+            GameObject par = GameObject.Find("Half_Window");
+            DestroyImmediate(par);
+        }
+    }
+
+    private void TestCreateParentObject()
+    {
+        if (isTesting)
+        {
+            GameObject halfParent = new GameObject("Half_Window");
+            halfParent.transform.parent = windows.transform;
+            halfParent.AddComponent<LogOnGaze>();
+            for (int i = 0; i < 6; i++)
+            {
+                GameObject obj = GameObject.Find(string.Format("windowHalf_{0}", i.ToString("00")));
+                obj.transform.parent = halfParent.transform;
+            }
+        }
     }
 
     private void ChangePosition()
@@ -41,13 +91,13 @@ public class BuildingController : MonoBehaviour
         }
     }
 
-    void GenerateGrid ()
+    void GenerateGrid()
     {
         Vector3 windowSingle = new Vector3((float)60.5589981, (float)67.4349976, (float)16.9939995);
         Vector3 windowHalf = new Vector3((float)47.6899986, (float)64.6589966, (float)16.9939995);
         for (int rowGroup = 0; rowGroup < 6; rowGroup++)
         {
-            GameObject windowClone = Instantiate(half, new Vector3(windowHalf.x, (float)(windowHalf.y - 10.602*rowGroup), windowHalf.z), half.transform.rotation);
+            GameObject windowClone = Instantiate(half, new Vector3(windowHalf.x, (float)(windowHalf.y - 10.602 * rowGroup), windowHalf.z), half.transform.rotation);
             windowClone.transform.parent = windows.transform;
             windowClone.name = string.Format("windowHalf_{0}", rowGroup.ToString("00"));
         }
@@ -76,26 +126,10 @@ public class BuildingController : MonoBehaviour
                 }
             }
         }
-        //if(listWindows.Count > 0)
-        //{
-        //    listWindows.Sort(delegate (GameObject a, GameObject b) {
-        //        return a.name.CompareTo(b.name);
-        //    });
-            
-        //}
-        
-
-        //    for (int row = 2; row < 22; row++)
-        //{
-        //    for (int col = 0; col < 20; col++)
-        //    {
-        //        windowGrid[row, col].GetComponent<MeshRenderer>().material = windowLightMaterial;
-        //    }
-        //}
 
     }
 
-    void ChangeTag ()
+    void ChangeTag()
     {
         for (int row = 2; row < 22; row++)
         {
